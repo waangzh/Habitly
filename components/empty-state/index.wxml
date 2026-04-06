@@ -1,0 +1,6 @@
+<view class="empty card">
+  <view class="icon">🌤️</view>
+  <view class="title">{{title}}</view>
+  <view class="desc">{{desc}}</view>
+  <view wx:if="{{buttonText}}" class="button" bindtap="onTap">{{buttonText}}</view>
+</view>

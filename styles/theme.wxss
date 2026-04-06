@@ -1,0 +1,14 @@
+:root,
+page {
+  --page-bg: #f3f7fc;
+  --surface: #ffffff;
+  --brand: #66a7ff;
+  --brand-deep: #4a84ef;
+  --text-primary: #27405d;
+  --text-secondary: #7e95b2;
+  --text-tertiary: #aebed3;
+  --line: rgba(120, 150, 189, 0.14);
+  --success: #60c48d;
+  --card-shadow: 0 20rpx 60rpx rgba(87, 123, 172, 0.10);
+  --soft-shadow: 0 10rpx 30rpx rgba(121, 154, 197, 0.12);
+}

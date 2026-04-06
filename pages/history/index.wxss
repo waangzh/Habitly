@@ -1,0 +1,12 @@
+.page-scroll { padding-bottom:40rpx; }
+.group { margin-bottom:24rpx; }
+.group-title { padding:6rpx 40rpx 18rpx; color:var(--text-secondary); font-size:24rpx; }
+.group-card { margin:0 32rpx; padding:10rpx 24rpx; }
+.history-item { display:flex; align-items:center; padding:24rpx 0; border-bottom:2rpx solid var(--line); }
+.history-item:last-child { border-bottom:0; }
+.date-box { width:88rpx; }
+.date-icon { width:72rpx; height:72rpx; border-radius:24rpx; background:#edf5ff; display:flex; align-items:center; justify-content:center; font-size:36rpx; }
+.content { flex:1; }
+.title { color:var(--text-primary); font-size:30rpx; font-weight:600; }
+.meta { margin-top:8rpx; color:var(--text-secondary); font-size:22rpx; }
+.status { color:var(--success); font-size:24rpx; font-weight:600; }

@@ -1,0 +1,5 @@
+.empty { margin:24rpx 32rpx 0; padding:52rpx 40rpx; text-align:center; }
+.icon { font-size:72rpx; margin-bottom:16rpx; }
+.title { font-size:34rpx; font-weight:600; color:var(--text-primary); }
+.desc { margin-top:12rpx; color:var(--text-secondary); line-height:1.7; }
+.button { margin-top:28rpx; height:84rpx; line-height:84rpx; border-radius:999rpx; background:linear-gradient(135deg, #7ab6ff, #5b91ff); color:#fff; font-weight:600; }

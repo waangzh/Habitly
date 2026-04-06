@@ -1,0 +1,12 @@
+.habit-card { margin:0 32rpx 24rpx; padding:28rpx; border-radius:34rpx; box-shadow:0 26rpx 54rpx rgba(88, 128, 177, 0.18); display:flex; align-items:center; color:#fff; }
+.left { width:92rpx; }
+.icon { width:84rpx; height:84rpx; border-radius:28rpx; background:rgba(255, 255, 255, 0.22); display:flex; align-items:center; justify-content:center; font-size:42rpx; }
+.middle { flex:1; padding:0 20rpx; }
+.title-row { display:flex; align-items:center; gap:12rpx; }
+.title { font-size:34rpx; font-weight:600; }
+.badge { height:44rpx; padding:0 16rpx; border-radius:999rpx; background:rgba(255, 255, 255, 0.22); line-height:44rpx; font-size:22rpx; }
+.slogan { margin-top:10rpx; font-size:24rpx; line-height:1.6; opacity:0.92; }
+.meta-row { display:flex; gap:16rpx; margin-top:14rpx; font-size:22rpx; opacity:0.88; }
+.right { display:flex; flex-direction:column; align-items:flex-end; justify-content:center; }
+.check-button { min-width:108rpx; padding:0 22rpx; height:72rpx; border-radius:24rpx; background:rgba(255, 255, 255, 0.28); border:2rpx solid rgba(255, 255, 255, 0.26); display:flex; align-items:center; justify-content:center; font-weight:600; }
+.check-button.checked { background:#ffffff; color:var(--brand-deep); }

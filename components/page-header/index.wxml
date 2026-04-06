@@ -1,0 +1,10 @@
+<view class="header">
+  <view class="side">
+    <view wx:if="{{showBack}}" class="capsule" bindtap="onBack">‹</view>
+    <view wx:elif="{{leftText}}" class="capsule ghost" bindtap="onLeftTap">{{leftText}}</view>
+  </view>
+  <view class="title">{{title}}</view>
+  <view class="side right">
+    <view wx:if="{{rightText}}" class="capsule" bindtap="onRightTap">{{rightText}}</view>
+  </view>
+</view>

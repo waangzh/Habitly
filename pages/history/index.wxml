@@ -1,0 +1,24 @@
+<view class="app-shell">
+  <page-header title="历史记录" show-back="{{true}}" bind:back="goBack" />
+  <scroll-view class="page-scroll" scroll-y>
+    <block wx:if="{{groups.length}}">
+      <view wx:for="{{groups}}" wx:key="month" class="group">
+        <view class="group-title">{{item.month}}</view>
+        <view class="group-card card">
+          <view wx:for="{{item.items}}" wx:key="recordId" class="history-item">
+            <view class="date-box"><view class="date-icon">{{item.icon}}</view></view>
+            <view class="content">
+              <view class="title">{{item.title}}</view>
+              <view class="meta">{{item.displayDate}}</view>
+              <view class="meta">完成于 {{item.checkedTime}}</view>
+            </view>
+            <view class="status">已完成</view>
+          </view>
+        </view>
+      </view>
+    </block>
+    <block wx:else>
+      <empty-state title="还没有任何打卡记录" desc="第一次完成打卡后，这里会慢慢变成你的成长轨迹。" />
+    </block>
+  </scroll-view>
+</view>

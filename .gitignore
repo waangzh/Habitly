@@ -1,0 +1,17 @@
+project.private.config.json
+AGENTS.md
+开发文档/
+
+# local secrets / environment
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+id_rsa
+id_dsa
+secrets.json
+local.config.json

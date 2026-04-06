@@ -1,0 +1,32 @@
+.tab-wrap {
+  position: fixed;
+  left: 24rpx;
+  right: 24rpx;
+  bottom: 0;
+  padding-bottom: 12rpx;
+}
+
+.tab {
+  display: flex;
+  padding: 16rpx 8rpx;
+  border-radius: 36rpx;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98) 0%, rgba(244, 248, 255, 0.96) 100%);
+  border: 2rpx solid rgba(124, 153, 196, 0.14);
+  box-shadow: 0 18rpx 44rpx rgba(95, 125, 170, 0.14);
+}
+
+.item {
+  flex: 1;
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 8rpx 0;
+  border-radius: 28rpx;
+}
+
+.item.active .icon, .item.active .label { color:var(--brand-deep); }
+.item.active {
+  background: rgba(102, 167, 255, 0.12);
+}
+
+.icon { font-size:34rpx; }
+.label { margin-top:4rpx; font-size:22rpx; }

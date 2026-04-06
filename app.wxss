@@ -1,0 +1,30 @@
+@import "styles/theme.wxss";
+
+page {
+  min-height: 100%;
+  background: var(--page-bg);
+  color: var(--text-primary);
+  font-size: 28rpx;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at top, rgba(110, 172, 255, 0.14), transparent 36%),
+    linear-gradient(180deg, #f7fbff 0%, #f2f5fb 100%);
+}
+
+.safe-bottom {
+  padding-bottom: calc(32rpx + env(safe-area-inset-bottom));
+}
+
+.page-scroll {
+  height: 100vh;
+  box-sizing: border-box;
+}
+
+.card {
+  background: var(--surface);
+  border-radius: 32rpx;
+  box-shadow: var(--card-shadow);
+}

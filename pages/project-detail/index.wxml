@@ -1,0 +1,75 @@
+<view class="app-shell">
+  <page-header title="项目详情" show-back="{{true}}" right-text="编辑" bind:back="goBack" bind:righttap="goEdit" />
+  <scroll-view class="page-scroll" scroll-y>
+    <block wx:if="{{detail}}">
+      <view class="hero card">
+        <view class="hero-top">
+          <view class="hero-icon">{{detail.project.icon}}</view>
+          <view>
+            <view class="hero-title">{{detail.project.title}}</view>
+            <view class="hero-subtitle">{{detail.project.slogan || '今天也稳稳往前走。'}}</view>
+          </view>
+        </view>
+        <view class="hero-stats">
+          <view class="stat-item">
+            <view class="stat-label">累计完成</view>
+            <view class="stat-value">{{detail.stats.totalCheckins}}</view>
+          </view>
+          <view class="stat-item">
+            <view class="stat-label">当前连胜</view>
+            <view class="stat-value">{{detail.stats.currentStreak}}</view>
+          </view>
+          <view class="stat-item">
+            <view class="stat-label">本月次数</view>
+            <view class="stat-value">{{detail.stats.monthCheckins}}</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="action-row">
+        <view class="action-card card" bindtap="goReport">成绩单</view>
+        <view class="action-card card" bindtap="toggleStatus">{{detail.project.status === 'active' ? '暂停项目' : '恢复项目'}}</view>
+      </view>
+
+      <view class="section card">
+        <view class="section-title">提醒与记录</view>
+        <view class="info-line">提醒状态：{{detail.project.reminderEnabled ? '已开启' : '已关闭'}}</view>
+        <view class="info-line" wx:if="{{detail.project.reminderTimes.length}}">提醒时间：{{detail.project.reminderTimes.join('、')}}</view>
+        <view class="info-line">心情记录：{{detail.project.moodEnabled ? '已开启' : '未开启'}}</view>
+        <view class="info-line">自评分：{{detail.project.scoreEnabled ? '已开启' : '未开启'}}</view>
+        <view class="info-line">成绩记录：{{detail.project.metricEnabled ? '已开启' : '未开启'}}</view>
+      </view>
+
+      <view class="section card">
+        <view class="section-title">奖励目标</view>
+        <view wx:for="{{detail.rewards}}" wx:key="rewardId" class="reward-item">
+          <view>
+            <view class="reward-title">{{item.title}}</view>
+            <view class="reward-desc">{{item.conditionText}}</view>
+          </view>
+          <view class="reward-status {{item.reached ? 'reached' : ''}}">{{item.reached ? '已达成' : '进行中'}}</view>
+        </view>
+      </view>
+
+      <view class="section card">
+        <view class="section-title">最近记录</view>
+        <block wx:if="{{detail.records.length}}">
+          <view wx:for="{{detail.records}}" wx:key="recordId" class="record-item">
+            <view>
+              <view class="record-date">{{item.displayDate}}</view>
+              <view class="record-meta">完成于 {{item.checkedTime}}</view>
+            </view>
+            <view class="record-extra">
+              <view wx:if="{{item.moodValue}}">心情 {{item.moodValue}}</view>
+              <view wx:if="{{item.scoreValue}}">评分 {{item.scoreValue}}</view>
+              <view wx:if="{{item.metricValue}}">{{item.metricValue}}{{item.metricUnit}}</view>
+            </view>
+          </view>
+        </block>
+        <block wx:else>
+          <empty-state title="还没有完成记录" desc="等你第一次打卡后，这里会开始留下成长轨迹。" />
+        </block>
+      </view>
+    </block>
+  </scroll-view>
+</view>

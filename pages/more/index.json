@@ -1,0 +1,6 @@
+{
+  "usingComponents": {
+    "page-header": "/components/page-header/index",
+    "bottom-tab-bar": "/components/bottom-tab-bar/index"
+  }
+}

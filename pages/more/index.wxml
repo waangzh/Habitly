@@ -1,0 +1,83 @@
+<view class="app-shell">
+  <page-header title="用户" />
+  <scroll-view class="page-scroll" scroll-y>
+    <block wx:if="{{userView}}">
+      <view class="profile-hero card theme-{{userView.hero.coverTheme}}">
+        <view class="hero-bg"></view>
+        <view class="hero-top">
+          <view class="cover-tag">{{userView.hero.coverTag}}</view>
+          <view class="sync-chip">{{userView.hero.syncText}}</view>
+        </view>
+        <view class="profile-main">
+          <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="handleChooseAvatar">
+            <image wx:if="{{userView.hero.avatarUrl}}" class="avatar-image" src="{{userView.hero.avatarUrl}}" mode="aspectFill"></image>
+            <view wx:else class="avatar default-avatar">
+              <view class="default-avatar-mark">{{userView.hero.avatarLabel}}</view>
+            </view>
+          </button>
+          <view class="profile-meta">
+            <view class="nickname">{{userView.hero.nickname}}</view>
+            <view class="bio">{{userView.hero.bio}}</view>
+          </view>
+        </view>
+        <view class="stats-row">
+          <view wx:for="{{userView.quickStats}}" wx:key="key" class="stat-card">
+            <view class="stat-value">{{item.value}}</view>
+            <view class="stat-label">{{item.label}}</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{editingSection}}" class="editor card">
+        <view class="editor-title">{{editingSection === 'profile' ? '编辑资料' : '切换背景主题'}}</view>
+
+        <block wx:if="{{editingSection === 'profile'}}">
+          <view class="editor-label">微信头像</view>
+          <button class="avatar-picker" open-type="chooseAvatar" bindchooseavatar="handleChooseAvatar">
+            <image wx:if="{{userView.editor.avatarUrl}}" class="avatar-preview-image" src="{{userView.editor.avatarUrl}}" mode="aspectFill"></image>
+            <view wx:else class="avatar-preview-text">{{userView.editor.avatarLabel}}</view>
+            <view class="avatar-picker-tip">点击上传头像图片，未上传时将使用默认头像</view>
+          </button>
+
+          <view class="editor-label">昵称</view>
+          <input class="editor-input" placeholder-class="editor-placeholder" type="nickname" maxlength="20" value="{{userView.editor.nickname}}" placeholder="支持微信昵称授权或手动修改" bindinput="handleNicknameInput" bindblur="handleNicknameBlur" />
+
+          <view class="editor-label">简介</view>
+          <textarea class="editor-textarea" placeholder-class="editor-placeholder" maxlength="40" placeholder="写一句想送给自己的话" value="{{userView.editor.bio}}" bindinput="handleBioInput"></textarea>
+        </block>
+
+        <block wx:if="{{editingSection === 'background'}}">
+          <view class="editor-label">背景主题</view>
+          <view class="theme-list">
+            <view
+              wx:for="{{userView.editor.coverOptions}}"
+              wx:key="key"
+              class="theme-chip {{item.active ? 'active' : ''}}"
+              data-value="{{item.key}}"
+              bindtap="chooseCover"
+            >
+              {{item.name}}
+            </view>
+          </view>
+        </block>
+
+        <view class="editor-actions">
+          <view class="ghost-btn" bindtap="handleAction" data-action="{{editingSection}}">收起</view>
+          <view class="primary-btn" bindtap="saveProfile">保存</view>
+        </view>
+      </view>
+
+      <view wx:for="{{userView.settingGroups}}" wx:key="key" class="section card">
+        <view class="section-title">{{item.title}}</view>
+        <view wx:for="{{item.items}}" wx:key="key" class="line-item" data-action="{{item.action}}" bindtap="handleAction">
+          <view class="line-main">
+            <view class="line-title">{{item.title}}</view>
+            <view class="line-desc">{{item.desc}}</view>
+          </view>
+          <view class="line-arrow">></view>
+        </view>
+      </view>
+    </block>
+  </scroll-view>
+  <bottom-tab-bar current="more" />
+</view>

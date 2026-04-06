@@ -1,0 +1,118 @@
+<view class="app-shell">
+  <page-header title="我的成就" />
+  <scroll-view class="page-scroll" scroll-y>
+    <block wx:if="{{summary}}">
+      <view class="hero card">
+        <view class="hero-title">每一次坚持，都会慢慢变成你的勋章</view>
+        <view class="hero-subtitle">这页会帮你把努力留下来，看到最近的连续打卡、解锁进度和这一年的周记录。</view>
+        <view class="stats-row">
+          <view class="stat-box">
+            <view class="stat-value">{{summary.totalCheckins}}</view>
+            <view class="stat-label">累计打卡</view>
+          </view>
+          <view class="stat-box">
+            <view class="stat-value">{{summary.longestStreak}}</view>
+            <view class="stat-label">最长连续</view>
+          </view>
+          <view class="stat-box">
+            <view class="stat-value">{{summary.unlockedCount}}</view>
+            <view class="stat-label">已解锁</view>
+          </view>
+        </view>
+      </view>
+
+      <view class="section card">
+        <view class="section-title">本月进展</view>
+        <view class="progress-row">
+          <view class="progress-card">
+            <view class="progress-value">{{summary.monthCheckins}}</view>
+            <view class="progress-label">本月打卡</view>
+          </view>
+          <view class="progress-card">
+            <view class="progress-value">{{summary.activeProjects}}</view>
+            <view class="progress-label">进行中项目</view>
+          </view>
+        </view>
+        <view wx:if="{{summary.nextBadge}}" class="next-badge">
+          <view class="next-badge-title">下一枚徽章</view>
+          <view class="next-badge-name">{{summary.nextBadge.icon}} {{summary.nextBadge.name}}</view>
+          <view class="next-badge-desc">{{summary.nextBadge.description}}</view>
+        </view>
+      </view>
+
+      <view wx:if="{{weeklyChart}}" class="section card">
+        <view class="section-head">
+          <view class="section-title no-gap">每周打卡记录</view>
+          <view class="year-switcher">
+            <view class="year-action" bindtap="handlePrevYear">
+              <view class="year-action-icon left"></view>
+            </view>
+            <view class="section-year">{{selectedYear}}</view>
+            <view class="year-action {{selectedYear >= summaryYear ? 'disabled' : ''}}" bindtap="handleNextYear">
+              <view class="year-action-icon right"></view>
+            </view>
+          </view>
+        </view>
+        <view class="weekly-summary">纵轴表示本周打卡次数，横轴表示第几周。曲线已调整为更平滑的趋势变化。</view>
+        <view class="weekly-chart">
+          <view class="chart-axis">
+            <view wx:for="{{weeklyChart.axisValues}}" wx:key="value" class="axis-label" style="bottom: {{item.bottom}};">
+              {{item.value}}
+            </view>
+          </view>
+          <scroll-view class="chart-scroll" scroll-x enhanced show-scrollbar="false" scroll-left="{{weeklyChart.scrollLeft}}">
+            <view class="chart-main" style="width: {{weeklyChart.chartWidth}};">
+              <view wx:for="{{weeklyChart.axisValues}}" wx:key="value" class="chart-grid" style="bottom: {{item.bottom}};" />
+              <canvas
+                canvas-id="weeklyTrend"
+                class="trend-canvas"
+                style="width: {{weeklyChart.chartWidth}}; height: {{weeklyChart.canvasHeightRpx}}rpx;"
+                width="{{weeklyChart.canvasWidthPx}}"
+                height="{{weeklyChart.canvasHeightPx}}"
+              />
+              <view class="x-axis">
+                <view
+                  wx:for="{{weeklyChart.labels}}"
+                  wx:key="week"
+                  class="x-label"
+                  style="left: {{item.left}};"
+                >
+                  第{{item.week}}周
+                </view>
+              </view>
+            </view>
+          </scroll-view>
+        </view>
+      </view>
+
+      <view class="section card">
+        <view class="section-title">最近解锁</view>
+        <block wx:if="{{summary.recentBadges.length}}">
+          <view wx:for="{{summary.recentBadges}}" wx:key="badgeId" class="recent-badge">
+            <view class="badge-icon">{{item.icon}}</view>
+            <view>
+              <view class="badge-title">{{item.name}}</view>
+              <view class="badge-desc">{{item.description}}</view>
+            </view>
+          </view>
+        </block>
+        <block wx:else>
+          <empty-state title="还没有新徽章" desc="继续完成今天的打卡，下一次亮起来的可能就是它。" />
+        </block>
+      </view>
+
+      <view class="section card">
+        <view class="section-title">徽章墙</view>
+        <view class="badge-summary">已解锁 {{summary.unlockedCount}} / {{summary.badges.length}}</view>
+        <view class="badge-grid">
+          <view wx:for="{{summary.badges}}" wx:key="badgeId" class="badge-card {{item.unlocked ? 'active' : ''}}">
+            <view class="badge-card-icon">{{item.icon}}</view>
+            <view class="badge-card-title">{{item.name}}</view>
+            <view class="badge-card-desc">{{item.description}}</view>
+          </view>
+        </view>
+      </view>
+    </block>
+  </scroll-view>
+  <bottom-tab-bar current="achievements" />
+</view>

@@ -1,0 +1,21 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/projects/index",
+    "pages/achievements/index",
+    "pages/more/index",
+    "pages/project-detail/index",
+    "pages/report-card/index",
+    "pages/project-form/index",
+    "pages/paused-projects/index",
+    "pages/history/index"
+  ],
+  "window": {
+    "navigationStyle": "custom",
+    "backgroundColor": "#f4f7fb",
+    "backgroundTextStyle": "light"
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

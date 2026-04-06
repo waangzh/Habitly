@@ -1,0 +1,53 @@
+<view class="project-card" bindtap="onDetail">
+  <view
+    class="project-hero {{paused ? 'paused' : ''}}"
+    style="background: linear-gradient(135deg, {{project.colorSet.start}}, {{project.colorSet.end}});"
+  >
+    <view class="hero-main">
+      <view class="hero-icon">{{project.icon}}</view>
+      <view class="hero-copy">
+        <view class="hero-title">{{project.title}}</view>
+        <view class="hero-slogan">{{project.slogan || '把今天过得更稳一点。'}}</view>
+      </view>
+    </view>
+    <view class="hero-days">
+      <view class="hero-days-value">{{project.cardStats.currentStreak}}</view>
+      <view class="hero-days-unit">Days</view>
+    </view>
+  </view>
+
+  <view class="project-body">
+    <view class="stats-row">
+      <view class="stat-item">
+        <view class="stat-label">本月完成天数</view>
+        <view class="stat-value-row">
+          <text class="stat-value">{{project.cardStats.monthCheckins}}</text>
+          <text class="stat-badge">Days</text>
+        </view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-label">连续天数</view>
+        <view class="stat-value-row">
+          <text class="stat-value">{{project.cardStats.currentStreak}}</text>
+          <text class="stat-badge">Days</text>
+        </view>
+      </view>
+      <view class="stat-item stat-item--goal">
+        <view class="stat-label">坚持目标</view>
+        <view class="stat-goal">{{project.cardStats.targetLabel}}</view>
+      </view>
+    </view>
+
+    <view class="divider"></view>
+
+    <view class="status-row">
+      <view class="status-copy">
+        <view class="status-title">{{paused ? '项目已暂停' : '项目进行中'}}</view>
+        <view class="status-date">{{project.cardStats.startedLabel}}</view>
+      </view>
+      <view class="switch {{paused ? 'off' : 'on'}}" catchtap="onAction">
+        <view class="switch-thumb"></view>
+      </view>
+    </view>
+  </view>
+</view>

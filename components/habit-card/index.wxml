@@ -1,0 +1,17 @@
+<view class="habit-card" style="background: linear-gradient(135deg, {{project.colorSet.start}}, {{project.colorSet.end}});">
+  <view class="left"><view class="icon">{{project.icon}}</view></view>
+  <view class="middle">
+    <view class="title-row">
+      <view class="title">{{project.title}}</view>
+      <view class="badge">{{project.stats.currentStreak}} 天连胜</view>
+    </view>
+    <view class="slogan">{{project.slogan || '今天也稳稳向前。'}}</view>
+    <view class="meta-row">
+      <view>本月 {{project.stats.monthCheckins}} 次</view>
+      <view wx:if="{{project.reminderEnabled && project.reminderTimes.length}}">{{project.reminderTimes[0]}}</view>
+    </view>
+  </view>
+  <view class="right">
+    <view class="check-button {{project.checked ? 'checked' : ''}}" bindtap="onCheck">{{project.checked ? '已完成' : '打卡'}}</view>
+  </view>
+</view>

@@ -1,0 +1,73 @@
+.page-scroll { padding-bottom: 220rpx; }
+.hero, .section { margin: 0 32rpx 24rpx; padding: 32rpx; }
+.hero-title { font-size: 38rpx; font-weight: 600; color: var(--text-primary); }
+.hero-subtitle { margin-top: 12rpx; color: var(--text-secondary); line-height: 1.7; }
+.stats-row { display: flex; gap: 16rpx; margin-top: 28rpx; }
+.stat-box { flex: 1; padding: 24rpx 0; background: #f7fbff; border-radius: 24rpx; text-align: center; }
+.stat-value { font-size: 40rpx; font-weight: 600; color: var(--brand-deep); }
+.stat-label { margin-top: 8rpx; color: var(--text-secondary); font-size: 22rpx; }
+.section-title { font-size: 30rpx; font-weight: 600; color: var(--text-primary); margin-bottom: 18rpx; }
+.section-title.no-gap { margin-bottom: 0; }
+.section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18rpx; }
+.section-year { font-size: 24rpx; color: #a1aec8; font-weight: 600; min-width: 72rpx; text-align: center; }
+.year-switcher { display: flex; align-items: center; gap: 12rpx; }
+.year-action {
+  width: 40rpx;
+  height: 40rpx;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f2f7ff;
+  color: #76aee8;
+}
+.year-action-icon {
+  width: 14rpx;
+  height: 14rpx;
+  border-top: 3rpx solid currentColor;
+  border-right: 3rpx solid currentColor;
+}
+.year-action-icon.left { transform: rotate(-135deg); margin-left: 6rpx; }
+.year-action-icon.right { transform: rotate(45deg); margin-right: 6rpx; }
+.year-action.disabled { opacity: 0.38; }
+.progress-row { display: flex; gap: 16rpx; }
+.progress-card { flex: 1; padding: 24rpx 0; background: #f7fbff; border-radius: 24rpx; text-align: center; }
+.progress-value { font-size: 38rpx; font-weight: 600; color: var(--brand-deep); }
+.progress-label { margin-top: 8rpx; color: var(--text-secondary); font-size: 22rpx; }
+.next-badge { margin-top: 22rpx; padding: 24rpx; border-radius: 24rpx; background: linear-gradient(180deg, #f8fbff, #edf5ff); }
+.next-badge-title { color: var(--text-secondary); font-size: 22rpx; }
+.next-badge-name { margin-top: 10rpx; color: var(--text-primary); font-size: 30rpx; font-weight: 600; }
+.next-badge-desc { margin-top: 8rpx; color: var(--text-secondary); font-size: 24rpx; line-height: 1.6; }
+.weekly-summary { margin-bottom: 20rpx; color: var(--text-secondary); font-size: 22rpx; line-height: 1.6; }
+.weekly-chart { display: flex; gap: 18rpx; margin-top: 8rpx; align-items: flex-start; }
+.chart-axis { position: relative; width: 36rpx; height: 240rpx; }
+.axis-label { position: absolute; left: 0; transform: translateY(50%); font-size: 20rpx; line-height: 1; color: #a5b3cf; }
+.chart-scroll { flex: 1; }
+.chart-main { position: relative; height: 240rpx; padding-bottom: 78rpx; }
+.chart-grid { position: absolute; left: 0; right: 0; height: 2rpx; background: rgba(145, 196, 255, 0.18); }
+.trend-canvas { position: absolute; left: 0; top: 0; }
+.x-axis {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 252rpx;
+  height: 60rpx;
+}
+.x-label {
+  position: absolute;
+  width: 96rpx;
+  color: #9aa8c3;
+  font-size: 20rpx;
+  white-space: nowrap;
+  text-align: center;
+  transform: translateX(-50%);
+}
+.recent-badge { display: flex; align-items: center; gap: 18rpx; padding: 18rpx 0; border-top: 2rpx solid var(--line); }
+.recent-badge:first-of-type { border-top: 0; }
+.badge-icon, .badge-card-icon { width: 72rpx; height: 72rpx; border-radius: 22rpx; background: #edf5ff; display: flex; align-items: center; justify-content: center; font-size: 36rpx; }
+.badge-title, .badge-card-title { color: var(--text-primary); font-weight: 600; }
+.badge-desc, .badge-card-desc { margin-top: 8rpx; color: var(--text-secondary); font-size: 24rpx; line-height: 1.6; }
+.badge-summary { margin-bottom: 16rpx; color: var(--text-secondary); font-size: 24rpx; }
+.badge-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18rpx; }
+.badge-card { padding: 24rpx; border-radius: 24rpx; background: #f7fbff; opacity: 0.65; }
+.badge-card.active { background: linear-gradient(180deg, #f8fbff, #eef6ff); opacity: 1; box-shadow: var(--soft-shadow); }

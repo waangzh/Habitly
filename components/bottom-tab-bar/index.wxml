@@ -1,0 +1,20 @@
+<view class="tab-wrap safe-bottom">
+  <view class="tab card">
+    <view class="item {{current === 'home' ? 'active' : ''}}" data-key="home" bindtap="onSwitch">
+      <view class="icon">🏠</view>
+      <view class="label">首页</view>
+    </view>
+    <view class="item {{current === 'projects' ? 'active' : ''}}" data-key="projects" bindtap="onSwitch">
+      <view class="icon">🗂</view>
+      <view class="label">项目</view>
+    </view>
+    <view class="item {{current === 'achievements' ? 'active' : ''}}" data-key="achievements" bindtap="onSwitch">
+      <view class="icon">🏆</view>
+      <view class="label">成就</view>
+    </view>
+    <view class="item {{current === 'more' ? 'active' : ''}}" data-key="more" bindtap="onSwitch">
+      <view class="icon">👤</view>
+      <view class="label">用户</view>
+    </view>
+  </view>
+</view>

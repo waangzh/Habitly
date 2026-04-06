@@ -1,0 +1,9 @@
+{
+  "usingComponents": {
+    "page-header": "/components/page-header/index",
+    "empty-state": "/components/empty-state/index",
+    "week-calendar": "/components/week-calendar/index",
+    "habit-card": "/components/habit-card/index",
+    "bottom-tab-bar": "/components/bottom-tab-bar/index"
+  }
+}

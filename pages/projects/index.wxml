@@ -1,0 +1,23 @@
+<view class="app-shell">
+  <page-header title="我的项目" left-text="新建" bind:lefttap="goCreate" />
+  <scroll-view class="page-scroll" scroll-y>
+    <view class="hero card">
+      <view class="hero-title">你正在把日子慢慢养熟</view>
+      <view class="hero-subtitle">管理项目、暂停休息、再继续出发，都在这里。</view>
+    </view>
+    <view class="paused-entry card" bindtap="goPaused">
+      <view>
+        <view class="paused-title">暂停中的项目</view>
+        <view class="paused-desc">暂时休息也没关系，恢复时会继续陪你。</view>
+      </view>
+      <view class="paused-count">{{pausedCount}}</view>
+    </view>
+    <block wx:if="{{projects.length}}">
+      <project-card wx:for="{{projects}}" wx:key="projectId" project="{{item}}" bind:detail="goDetail" bind:edit="handleEdit" bind:action="handlePause" />
+    </block>
+    <block wx:else>
+      <empty-state title="还没有进行中的项目" desc="先新建一个习惯，首页就会开始出现每日打卡卡片。" button-text="马上创建" bind:action="goCreate" />
+    </block>
+  </scroll-view>
+  <bottom-tab-bar current="projects" />
+</view>

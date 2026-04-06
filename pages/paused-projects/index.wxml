@@ -1,0 +1,15 @@
+<view class="app-shell">
+  <page-header title="暂停项目" show-back="{{true}}" bind:back="goBack" />
+  <scroll-view class="page-scroll" scroll-y>
+    <view class="intro card">
+      <view class="title">先休息一下，也算认真对待自己</view>
+      <view class="desc">暂停中的项目不会出现在首页，等你准备好了，再恢复就好。</view>
+    </view>
+    <block wx:if="{{projects.length}}">
+      <project-card wx:for="{{projects}}" wx:key="projectId" project="{{item}}" paused="{{true}}" bind:detail="goDetail" bind:edit="handleEdit" bind:action="handleResume" />
+    </block>
+    <block wx:else>
+      <empty-state title="没有暂停中的项目" desc="现在的节奏刚刚好，继续就行。" />
+    </block>
+  </scroll-view>
+</view>

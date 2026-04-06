@@ -1,0 +1,4 @@
+.page-scroll { padding-bottom:40rpx; }
+.intro { margin:0 32rpx 24rpx; padding:32rpx; }
+.title { font-size:34rpx; font-weight:600; color:var(--text-primary); }
+.desc { margin-top:12rpx; color:var(--text-secondary); line-height:1.7; }

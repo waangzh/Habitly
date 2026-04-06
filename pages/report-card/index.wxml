@@ -1,0 +1,174 @@
+<view class="app-shell">
+  <page-header title="{{projectTitle ? (projectTitle + ' 成绩单') : '成绩单'}}" show-back="{{true}}" bind:back="goBack" />
+  <scroll-view class="page-scroll" scroll-y>
+    <view class="report-hero">
+      <view class="hero-copy">
+        <view class="hero-title">这段时间，你在认真把日子过成想要的样子</view>
+        <view class="hero-subtitle">把完成次数、连胜状态和月度反馈放在一起看，会更有继续坚持的感觉。</view>
+      </view>
+      <view class="hero-glow"></view>
+    </view>
+
+    <view class="tab-row">
+      <view class="tab {{activeTab === 'week' ? 'active' : ''}}" data-tab="week" bindtap="switchTab">本周</view>
+      <view class="tab {{activeTab === 'month' ? 'active' : ''}}" data-tab="month" bindtap="switchTab">本月</view>
+    </view>
+
+    <block wx:if="{{report}}">
+      <view class="summary shell-card">
+        <view class="summary-item">
+          <view class="summary-label">项目数</view>
+          <view class="summary-value">{{report.totalProjects}}</view>
+        </view>
+        <view class="summary-divider"></view>
+        <view class="summary-item">
+          <view class="summary-label">完成次数</view>
+          <view class="summary-value">{{report.totalCheckins}}</view>
+        </view>
+        <view class="summary-divider"></view>
+        <view class="summary-item">
+          <view class="summary-label">连胜合计</view>
+          <view class="summary-value">{{report.streakSummary}}</view>
+        </view>
+      </view>
+
+      <view class="heatmap shell-card" wx:if="{{monthHeatmap && !isProjectMode}}">
+        <view class="section-head">
+          <view>
+            <view class="section-title">月历热力块</view>
+            <view class="section-subtitle">{{monthHeatmap.monthLabel}}</view>
+          </view>
+          <view class="legend">
+            <view class="legend-dot level-0"></view>
+            <view class="legend-dot level-1"></view>
+            <view class="legend-dot level-2"></view>
+            <view class="legend-dot level-3"></view>
+          </view>
+        </view>
+        <view class="heatmap-week">
+          <view wx:for="{{monthHeatmap.weekLabels}}" wx:key="*this" class="heatmap-week-label">{{item}}</view>
+        </view>
+        <view class="heatmap-grid">
+          <view
+            wx:for="{{monthHeatmap.items}}"
+            wx:key="key"
+            class="heatmap-day level-{{item.level}} {{item.inMonth ? '' : 'muted'}} {{item.isToday ? 'today' : ''}}"
+          >
+            <view class="heatmap-day-text">{{item.dayNumber}}</view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{singleProjectCalendar}}" class="single-calendar shell-card">
+        <view class="section-head">
+          <view>
+            <view class="section-title">本月打卡月视图</view>
+            <view class="section-subtitle">{{singleProjectCalendar.monthLabel}} · 这里只展示这个项目自己的打卡节奏</view>
+          </view>
+        </view>
+        <view class="calendar-week">
+          <view wx:for="{{singleProjectCalendar.weekLabels}}" wx:key="*this" class="calendar-week-label">{{item}}</view>
+        </view>
+        <view class="calendar-grid">
+          <view wx:for="{{singleProjectCalendar.cells}}" wx:key="key" class="calendar-cell {{item.checked ? 'checked' : ''}} {{item.inMonth ? '' : 'muted'}} {{item.isToday ? 'today' : ''}}">
+            <view class="calendar-day">{{item.dayNumber}}</view>
+            <view wx:if="{{item.checked && item.moodValue}}" class="calendar-mood">{{item.moodValue}}</view>
+            <view wx:elif="{{item.checked && item.metricValue}}" class="calendar-metric">{{item.metricValue}}</view>
+            <view wx:elif="{{item.checked}}" class="calendar-dot"></view>
+          </view>
+        </view>
+      </view>
+
+      <view wx:if="{{metricTrend}}" class="metric-card shell-card">
+        <view class="section-head">
+          <view>
+            <view class="section-title">数值型成绩趋势</view>
+            <view class="section-subtitle">最近 7 次记录的变化，适合看训练量、次数或时长。</view>
+          </view>
+        </view>
+        <view class="metric-summary">
+          <view class="metric-summary-item">
+            <view class="metric-summary-label">累计</view>
+            <view class="metric-summary-value">{{metricTrend.totalValue}}{{metricTrend.unit}}</view>
+          </view>
+          <view class="metric-summary-item">
+            <view class="metric-summary-label">平均</view>
+            <view class="metric-summary-value">{{metricTrend.averageValue}}{{metricTrend.unit}}</view>
+          </view>
+        </view>
+        <view class="metric-chart">
+          <view wx:for="{{metricTrend.points}}" wx:key="dateLabel" class="metric-bar-group">
+            <view class="metric-bar" style="height: {{item.height}}rpx;"></view>
+            <view class="metric-bar-value">{{item.value}}</view>
+            <view class="metric-bar-label">{{item.dateLabel}}</view>
+          </view>
+        </view>
+      </view>
+
+      <block wx:if="{{activeTab === 'week'}}">
+        <view class="panel shell-card">
+          <view class="section-head">
+            <view>
+              <view class="section-title">本周完成矩阵</view>
+              <view class="section-subtitle">横向看这周的节奏，能更容易感受到连续性。</view>
+            </view>
+          </view>
+          <view class="week-header">
+            <view class="week-title-slot"></view>
+            <view wx:for="{{weekDays}}" wx:key="key" class="week-head-item">
+              <view>{{item.label}}</view>
+              <view class="week-head-day">{{item.dayNumber}}</view>
+            </view>
+          </view>
+          <block wx:if="{{weekMatrix.length}}">
+            <view wx:for="{{weekMatrix}}" wx:key="projectId" class="week-row">
+              <view class="week-project">
+                <view class="week-icon">{{item.icon}}</view>
+                <view class="week-name">{{item.title}}</view>
+              </view>
+              <view wx:for="{{item.days}}" wx:key="key" class="week-cell {{item.done ? 'done' : ''}}">
+                <view wx:if="{{item.done}}" class="week-check">✓</view>
+              </view>
+            </view>
+          </block>
+          <block wx:else>
+            <empty-state title="本周还没有成绩数据" desc="从今天开始完成几次打卡，这里就会慢慢亮起来。" />
+          </block>
+        </view>
+      </block>
+
+      <block wx:if="{{activeTab === 'month'}}">
+        <view class="panel shell-card">
+          <view class="section-head">
+            <view>
+              <view class="section-title">本月项目摘要</view>
+              <view class="section-subtitle">把趋势、次数和节奏放在同一张卡里看，会更接近真实感受。</view>
+            </view>
+          </view>
+          <block wx:if="{{monthInsights.length}}">
+            <view wx:for="{{monthInsights}}" wx:key="projectId" class="month-row">
+              <view class="month-top">
+                <view class="month-left">
+                  <view class="project-icon">{{item.icon}}</view>
+                  <view>
+                    <view class="project-title">{{item.title}}</view>
+                    <view class="project-meta">{{item.trendText}}</view>
+                  </view>
+                </view>
+                <view class="metric" wx:if="{{item.metricTotal}}">{{item.metricTotal}}{{item.metricUnit}}</view>
+              </view>
+              <view class="progress-track">
+                <view class="progress-fill" style="width: {{item.percent}}%;"></view>
+              </view>
+              <view class="month-meta">本月完成 {{item.totalCheckins}} 次 · 当前连胜 {{item.currentStreak}} 天</view>
+            </view>
+          </block>
+          <block wx:else>
+            <empty-state title="这一段时间还没有成绩数据" desc="先去完成几次打卡，成绩单就会慢慢长出来。" />
+          </block>
+        </view>
+      </block>
+    </block>
+  </scroll-view>
+  <bottom-tab-bar current="achievements" />
+</view>

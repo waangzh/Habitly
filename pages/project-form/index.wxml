@@ -1,0 +1,90 @@
+<view class="app-shell">
+  <page-header title="{{isEdit ? '编辑项目' : '创建项目'}}" show-back="{{true}}" right-text="保存" bind:back="goBack" bind:righttap="submit" />
+  <scroll-view class="page-scroll" scroll-y>
+    <view class="card form-card">
+      <view class="field">
+        <view class="label">项目名称</view>
+        <input class="input" placeholder="输入你想坚持的小事" value="{{form.title}}" data-field="title" bindinput="handleInput" />
+      </view>
+      <view class="field">
+        <view class="label">鼓励语</view>
+        <textarea class="textarea" maxlength="40" placeholder="给自己留一句温和的提醒" value="{{form.slogan}}" data-field="slogan" bindinput="handleInput" />
+      </view>
+      <view class="field">
+        <view class="label">开始日期</view>
+        <input class="input" value="{{form.startDate}}" disabled />
+      </view>
+    </view>
+
+    <view class="card form-card">
+      <view class="label">选择图标</view>
+      <view class="icon-grid">
+        <view wx:for="{{icons}}" wx:key="*this" class="icon-item {{form.icon === item ? 'active' : ''}}" data-icon="{{item}}" bindtap="chooseIcon">{{item}}</view>
+      </view>
+    </view>
+
+    <view class="card form-card">
+      <view class="label">卡片颜色</view>
+      <view class="theme-row">
+        <view wx:for="{{colorThemes}}" wx:key="key" class="theme-pill {{form.colorTheme === item.key ? 'active' : ''}}" data-theme="{{item.key}}" bindtap="chooseTheme">{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="card form-card">
+      <view class="switch-row">
+        <view>
+          <view class="label">提醒已开启</view>
+          <view class="hint">可添加多个提醒时间，关闭后会保留已有设置。</view>
+        </view>
+        <switch checked="{{form.reminderEnabled}}" color="#5b91ff" data-field="reminderEnabled" bindchange="handleSwitch" />
+      </view>
+      <view wx:if="{{form.reminderEnabled}}" class="reminder-list">
+        <view wx:for="{{form.reminderTimes}}" wx:key="*this" class="reminder-item">
+          <view class="remove-pill" data-index="{{index}}" bindtap="removeReminder">−</view>
+          <view class="reminder-text">{{item}}</view>
+        </view>
+        <view class="add-reminder" bindtap="openReminderPicker">＋ 点击添加更多提醒时间</view>
+      </view>
+    </view>
+
+    <view class="card form-card">
+      <view class="switch-row">
+        <view class="label">记录心情</view>
+        <switch checked="{{form.moodEnabled}}" color="#5b91ff" data-field="moodEnabled" bindchange="handleSwitch" />
+      </view>
+      <view class="switch-row">
+        <view class="label">给自己评分</view>
+        <switch checked="{{form.scoreEnabled}}" color="#5b91ff" data-field="scoreEnabled" bindchange="handleSwitch" />
+      </view>
+      <view class="switch-row no-border">
+        <view>
+          <view class="label">成绩记录占位</view>
+          <view class="hint">P1 会接上数值记录与趋势展示</view>
+        </view>
+        <switch checked="{{form.metricEnabled}}" color="#5b91ff" data-field="metricEnabled" bindchange="handleSwitch" />
+      </view>
+    </view>
+    <view class="submit safe-bottom" bindtap="submit">{{isEdit ? '保存修改' : '创建项目'}}</view>
+  </scroll-view>
+
+  <view wx:if="{{showReminderPicker}}" class="picker-mask" catchtap="closeReminderPicker">
+    <view class="picker-panel" catchtap="noop">
+      <view class="picker-header">
+        <view class="picker-close" bindtap="closeReminderPicker">×</view>
+        <view class="picker-title">选择提醒时间</view>
+      </view>
+      <picker-view class="picker-view" indicator-style="height: 72rpx;" value="{{pickerValue}}" bindchange="handlePickerChange">
+        <picker-view-column>
+          <view wx:for="{{frequencyOptions}}" wx:key="*this" class="picker-item">{{item}}</view>
+        </picker-view-column>
+        <picker-view-column>
+          <view wx:for="{{hourOptions}}" wx:key="*this" class="picker-item">{{item}} 点</view>
+        </picker-view-column>
+        <picker-view-column>
+          <view wx:for="{{minuteOptions}}" wx:key="*this" class="picker-item">{{item}} 分</view>
+        </picker-view-column>
+      </picker-view>
+      <view class="picker-submit" bindtap="confirmReminderPicker">完成</view>
+    </view>
+  </view>
+</view>

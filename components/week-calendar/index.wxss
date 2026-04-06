@@ -1,0 +1,9 @@
+.calendar { margin:0 32rpx; padding:28rpx 22rpx; }
+.week-row, .date-row { display:grid; grid-template-columns:repeat(7, 1fr); gap:12rpx; }
+.week-label { text-align:center; color:var(--text-tertiary); font-size:22rpx; }
+.date-row { margin-top:14rpx; }
+.date-item { height:110rpx; border-radius:26rpx; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-secondary); background:#f8fbff; }
+.date-item.today { border:2rpx solid rgba(102, 167, 255, 0.22); }
+.date-item.active { background:linear-gradient(180deg, #7ab5ff, #5e93ff); color:#fff; box-shadow:0 14rpx 36rpx rgba(94, 147, 255, 0.28); }
+.day-number { font-size:36rpx; font-weight:600; }
+.today-text { margin-top:4rpx; font-size:20rpx; opacity:0.82; }

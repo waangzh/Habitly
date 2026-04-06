@@ -1,0 +1,71 @@
+<view class="app-shell">
+  <page-header title="今日习惯" />
+  <scroll-view class="page-scroll" scroll-y>
+    <view class="intro">
+      <view class="welcome">今天想先完成哪一件小事？</view>
+      <view class="subtitle">{{displayDate}} · {{syncText}}</view>
+    </view>
+    <week-calendar items="{{weekDays}}" selected-date="{{selectedDate}}" bind:select="handleSelectDate" />
+    <view class="summary card">
+      <view class="summary-item">
+        <view class="summary-label">待完成</view>
+        <view class="summary-value">{{pendingCount}}</view>
+      </view>
+      <view class="divider"></view>
+      <view class="summary-item">
+        <view class="summary-label">已完成</view>
+        <view class="summary-value success">{{completedCount}}</view>
+      </view>
+    </view>
+
+    <block wx:if="{{!projects.length}}">
+      <empty-state title="今天暂时没有待打卡项目" desc="先创建一个习惯，让首页开始有一点点成长感。" button-text="创建第一个项目" bind:action="goCreate" />
+    </block>
+    <block wx:elif="{{pendingCount === 0}}">
+      <empty-state title="今天已经完成啦" desc="这一页被你打理得很干净，记得给自己一个小小奖励。" button-text="看看历史记录" bind:action="goHistory" />
+    </block>
+    <block wx:else>
+      <view class="list-title">今日习惯</view>
+      <habit-card wx:for="{{projects}}" wx:key="projectId" project="{{item}}" bind:check="handleCheckin" />
+    </block>
+
+    <view class="brand-footer safe-bottom">
+      <view class="brand-pill">Habitly</view>
+      <view class="brand-text">把微小坚持，慢慢养成稳定节奏。</view>
+    </view>
+  </scroll-view>
+  <view class="floating-actions">
+    <view class="action-chip" bindtap="goHistory">历史</view>
+    <view class="action-chip primary" bindtap="goCreate">新建</view>
+  </view>
+  <bottom-tab-bar current="home" />
+
+  <view wx:if="{{showExtraSheet && currentExtraProject}}" class="sheet-mask" catchtap="closeExtraSheet">
+    <view class="sheet-panel" catchtap="noop">
+      <view class="sheet-title">补充一下这次打卡</view>
+      <view class="sheet-subtitle">{{currentExtraProject.title}} 完成后的小记录</view>
+
+      <view wx:if="{{currentExtraProject.moodEnabled}}" class="sheet-section">
+        <view class="sheet-label">今天的心情</view>
+        <view class="mood-row">
+          <view wx:for="{{moodOptions}}" wx:key="*this" class="mood-pill {{extraForm.moodValue === item ? 'active' : ''}}" data-value="{{item}}" bindtap="chooseMood">{{item}}</view>
+        </view>
+      </view>
+
+      <view wx:if="{{currentExtraProject.scoreEnabled}}" class="sheet-section">
+        <view class="sheet-label">给自己打个分</view>
+        <input class="sheet-input" type="number" value="{{extraForm.scoreValue}}" data-field="scoreValue" bindinput="handleExtraInput" />
+      </view>
+
+      <view wx:if="{{currentExtraProject.metricEnabled}}" class="sheet-section">
+        <view class="sheet-label">记录这次的成绩</view>
+        <input class="sheet-input" type="digit" placeholder="输入数值" value="{{extraForm.metricValue}}" data-field="metricValue" bindinput="handleExtraInput" />
+      </view>
+
+      <view class="sheet-actions">
+        <view class="sheet-btn ghost" bindtap="closeExtraSheet">稍后再说</view>
+        <view class="sheet-btn primary" bindtap="saveExtraSheet">保存记录</view>
+      </view>
+    </view>
+  </view>
+</view>

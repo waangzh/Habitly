@@ -1,0 +1,11 @@
+<view class="calendar card">
+  <view class="week-row">
+    <view wx:for="{{items}}" wx:key="date" class="week-label">周{{item.day}}</view>
+  </view>
+  <view class="date-row">
+    <view wx:for="{{items}}" wx:key="date" class="date-item {{selectedDate === item.date ? 'active' : ''}} {{item.isToday ? 'today' : ''}}" data-date="{{item.date}}" bindtap="onSelect">
+      <view class="day-number">{{item.dayNumber}}</view>
+      <view wx:if="{{item.isToday}}" class="today-text">今</view>
+    </view>
+  </view>
+</view>

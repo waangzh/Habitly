@@ -1,0 +1,8 @@
+{
+  "usingComponents": {
+    "page-header": "/components/page-header/index",
+    "empty-state": "/components/empty-state/index",
+    "project-card": "/components/project-card/index",
+    "bottom-tab-bar": "/components/bottom-tab-bar/index"
+  }
+}
