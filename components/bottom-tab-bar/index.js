@@ -1,9 +1,15 @@
+/**
+ * 底部导航栏组件
+ * 提供主要页面间的导航切换
+ */
+
 Component({
   properties: {
     current: String,
   },
 
   methods: {
+    /** 切换页面 */
     onSwitch(event) {
       const key = event.currentTarget.dataset.key;
       if (key === this.properties.current) {

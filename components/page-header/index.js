@@ -1,3 +1,8 @@
+/**
+ * 页面头部组件
+ * 提供统一的页面标题栏
+ */
+
 Component({
   properties: {
     title: String,
@@ -5,13 +10,16 @@ Component({
     rightText: { type: String, value: '' },
     showBack: { type: Boolean, value: false },
   },
+
   methods: {
     onBack() {
       this.triggerEvent('back');
     },
+
     onLeftTap() {
       this.triggerEvent('lefttap');
     },
+
     onRightTap() {
       this.triggerEvent('righttap');
     },

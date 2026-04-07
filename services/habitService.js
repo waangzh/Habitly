@@ -1,24 +1,35 @@
+/**
+ * 习惯项目服务层
+ * 提供项目、打卡记录的增删改查和统计功能
+ */
+
 const { formatDate, formatMonthLabel, getWeekRange, getWeekday, parseDate } = require('../utils/date');
 const { getStorage, setStorage } = require('../utils/storage');
 
 const PROJECTS_KEY = 'habit-projects';
 const CHECKINS_KEY = 'habit-checkins';
 
+/** 默认图标列表 */
 const DEFAULT_ICONS = ['🏃', '📝', '📚', '💊', '🧘', '🎸', '🌱', '🎯', '🍎', '☀️'];
+
+/** 主题颜色映射 */
 const THEME_MAP = {
   blue: { start: '#7cb5ff', end: '#5a8fff' },
   green: { start: '#82d8ae', end: '#56c28d' },
   orange: { start: '#ffc57b', end: '#ff9f64' },
 };
 
+/** 获取当前 ISO 时间 */
 function now() {
   return new Date().toISOString();
 }
 
+/** 生成唯一 ID */
 function generateId(prefix) {
   return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
 }
 
+/** 创建演示项目数据 */
 function createMockProjects() {
   const today = formatDate(new Date());
   return [
@@ -69,6 +80,7 @@ function createMockProjects() {
   ];
 }
 
+/** 获取或初始化项目列表 */
 function ensureProjects() {
   const projects = getStorage(PROJECTS_KEY, null);
   if (projects && projects.length) {
@@ -80,10 +92,12 @@ function ensureProjects() {
   return initialProjects;
 }
 
+/** 获取或初始化打卡记录 */
 function ensureCheckins() {
   return getStorage(CHECKINS_KEY, []);
 }
 
+/** 重置为演示数据 */
 function resetDemoData() {
   const projects = createMockProjects();
   setStorage(PROJECTS_KEY, projects);
@@ -91,14 +105,17 @@ function resetDemoData() {
   return projects;
 }
 
+/** 保存项目列表 */
 function saveProjects(projects) {
   setStorage(PROJECTS_KEY, projects);
 }
 
+/** 保存打卡记录 */
 function saveCheckins(checkins) {
   setStorage(CHECKINS_KEY, checkins);
 }
 
+/** 标准化项目数据 (补充默认值) */
 function normalizeProject(project) {
   return {
     ...project,
@@ -108,11 +125,13 @@ function normalizeProject(project) {
   };
 }
 
+/** 获取项目列表 */
 function getProjects(status) {
   const projects = ensureProjects().map(normalizeProject);
   return status ? projects.filter((item) => item.status === status) : projects;
 }
 
+/** 计算项目统计数据 */
 function calculateStats(projectId) {
   const checkins = ensureCheckins()
     .filter((item) => item.projectId === projectId && item.status === 'done')
@@ -152,10 +171,12 @@ function calculateStats(projectId) {
   };
 }
 
+/** 根据 ID 获取项目 */
 function getProjectById(projectId) {
   return getProjects().find((item) => item.projectId === projectId);
 }
 
+/** 判断项目是否在指定日期显示 */
 function shouldShowOnDate(project, date) {
   if (project.status !== 'active') {
     return false;
@@ -168,6 +189,7 @@ function shouldShowOnDate(project, date) {
   return project.scheduleDays.includes(parseDate(date).getDay());
 }
 
+/** 获取首页数据 */
 function getHomeData(date) {
   const selectedDate = date || formatDate(new Date());
   const checkins = ensureCheckins();
@@ -193,6 +215,7 @@ function getHomeData(date) {
   };
 }
 
+/** 创建项目 */
 function createProject(payload) {
   const projects = ensureProjects();
   const project = normalizeProject({
@@ -223,6 +246,7 @@ function createProject(payload) {
   return project;
 }
 
+/** 更新项目 */
 function updateProject(projectId, payload) {
   const projects = ensureProjects().map((item) => {
     if (item.projectId !== projectId) {
@@ -236,10 +260,12 @@ function updateProject(projectId, payload) {
   return getProjectById(projectId);
 }
 
+/** 更新项目状态 */
 function updateProjectStatus(projectId, status) {
   return updateProject(projectId, { status });
 }
 
+/** 提交打卡记录 */
 function submitCheckin(payload) {
   const checkins = ensureCheckins();
   const existingIndex = checkins.findIndex(
@@ -271,6 +297,7 @@ function submitCheckin(payload) {
   return record;
 }
 
+/** 切换打卡状态 */
 function toggleCheckin(payload) {
   const checkins = ensureCheckins();
   const existingIndex = checkins.findIndex(
@@ -287,6 +314,7 @@ function toggleCheckin(payload) {
   return { checked: true };
 }
 
+/** 获取按月分组的历史记录 */
 function getHistoryGrouped() {
   const projects = getProjects();
   const checkins = ensureCheckins()
@@ -320,12 +348,14 @@ function getHistoryGrouped() {
   }));
 }
 
+/** 获取项目打卡记录 */
 function getProjectRecords(projectId) {
   return ensureCheckins()
     .filter((item) => item.projectId === projectId && item.status === 'done')
     .sort((a, b) => b.date.localeCompare(a.date) || b.checkedAt.localeCompare(a.checkedAt));
 }
 
+/** 获取项目详情 */
 function getProjectDetail(projectId) {
   const project = getProjectById(projectId);
   if (!project) {
@@ -365,6 +395,7 @@ function getProjectDetail(projectId) {
   };
 }
 
+/** 保存打卡附加信息 */
 function saveCheckinExtras(payload) {
   const checkins = ensureCheckins();
   const existingIndex = checkins.findIndex(
@@ -389,6 +420,7 @@ function saveCheckinExtras(payload) {
   return updated;
 }
 
+/** 获取成绩单数据 */
 function getReportCard(periodType) {
   const projects = getProjects('active');
   const checkins = ensureCheckins().filter((item) => item.status === 'done');
@@ -402,14 +434,20 @@ function getReportCard(periodType) {
   const monthRecords = checkins.filter((item) => item.date.startsWith(currentMonthKey));
   const scopedRecords = periodType === 'week' ? weekRecords : monthRecords;
 
+  // 预计算所有项目的统计数据，避免重复计算
+  const statsCache = {};
+  projects.forEach((item) => {
+    statsCache[item.projectId] = calculateStats(item.projectId);
+  });
+
   return {
     periodType,
     totalProjects: projects.length,
     totalCheckins: scopedRecords.length,
     completionRate: projects.length ? Math.round((scopedRecords.length / projects.length) * 100) : 0,
-    streakSummary: projects.reduce((sum, item) => sum + calculateStats(item.projectId).currentStreak, 0),
+    streakSummary: projects.reduce((sum, item) => sum + statsCache[item.projectId].currentStreak, 0),
     projectSummaries: projects.map((item) => {
-      const stats = calculateStats(item.projectId);
+      const stats = statsCache[item.projectId];
       const projectRecords = scopedRecords.filter((record) => record.projectId === item.projectId);
       const metricRecords = projectRecords.filter((record) => record.metricValue);
       const totalMetric = metricRecords.reduce((sum, record) => sum + Number(record.metricValue || 0), 0);
@@ -427,6 +465,7 @@ function getReportCard(periodType) {
   };
 }
 
+/** 获取一年中的第几周 */
 function getWeekOfYear(input) {
   const date = new Date(input);
   date.setHours(0, 0, 0, 0);
@@ -437,10 +476,12 @@ function getWeekOfYear(input) {
   return Math.floor((dayOffset + yearStart.getDay()) / 7) + 1;
 }
 
+/** 获取一年的总周数 */
 function getCurrentYearWeekCount(year) {
   return getWeekOfYear(new Date(year, 11, 31));
 }
 
+/** 获取周打卡序列 (用于图表) */
 function getWeeklyCheckinSeries(targetYear) {
   const records = ensureCheckins().filter((item) => item.status === 'done');
   const currentYear = targetYear || new Date().getFullYear();
@@ -478,6 +519,7 @@ function getWeeklyCheckinSeries(targetYear) {
   };
 }
 
+/** 获取成就汇总 */
 function getAchievementSummary() {
   const projects = getProjects('active');
   const checkins = ensureCheckins().filter((item) => item.status === 'done');
@@ -523,12 +565,13 @@ function getAchievementSummary() {
     longestStreak,
     monthCheckins,
     nextBadge: badges.find((item) => !item.unlocked) || null,
-    unlockedCount: badges.filter((item) => item.unlocked).length,
+    unlockedCount: badges.filter((item) => !item.unlocked).length,
     recentBadges: badges.filter((item) => item.unlocked).slice(0, 2),
     badges,
   };
 }
 
+/** 获取更多页面概览数据 */
 function getMoreOverview() {
   const app = typeof getApp === 'function' ? getApp() : null;
   const user = app && app.globalData ? app.globalData.user : null;

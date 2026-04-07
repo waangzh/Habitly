@@ -1,8 +1,15 @@
+/**
+ * 更多页
+ * 用户设置和个人信息管理
+ */
+
 const service = require('../../services/habitService');
 const { getSyncStatusText } = require('../../store/ui');
 const { getStorage, setStorage } = require('../../utils/storage');
 
 const USER_PROFILE_KEY = 'habit-user-profile';
+
+/** 背景主题选项 */
 const COVER_OPTIONS = [
   { key: 'sky', name: '晴空蓝' },
   { key: 'mint', name: '薄荷绿' },
@@ -10,6 +17,7 @@ const COVER_OPTIONS = [
 ];
 const DEFAULT_AVATAR_LABEL = '默认';
 
+/** 获取用户资料 */
 function getUserProfile(overview) {
   const app = typeof getApp === 'function' ? getApp() : null;
   const globalUser = app && app.globalData ? app.globalData.user || {} : {};
@@ -25,6 +33,7 @@ function getUserProfile(overview) {
   };
 }
 
+/** 构建用户视图数据 */
 function buildUserViewModel(overview, syncText, profile) {
   const projects = service.getProjects();
   const achievement = service.getAchievementSummary();
@@ -110,6 +119,7 @@ Page({
     this.refreshView();
   },
 
+  /** 刷新视图数据 */
   refreshView() {
     const overview = service.getMoreOverview();
     const syncText = getSyncStatusText(overview.syncStatus);
@@ -123,6 +133,7 @@ Page({
     });
   },
 
+  /** 处理设置项点击 */
   handleAction(event) {
     const action = event.currentTarget.dataset.action;
 
@@ -170,18 +181,22 @@ Page({
     });
   },
 
+  /** 昵称输入 */
   handleNicknameInput(event) {
     this.updateDraftProfile({ nickname: (event.detail.value || '').slice(0, 20) });
   },
 
+  /** 简介输入 */
   handleBioInput(event) {
     this.updateDraftProfile({ bio: (event.detail.value || '').slice(0, 40) });
   },
 
+  /** 昵称失焦时去除空格 */
   handleNicknameBlur(event) {
     this.updateDraftProfile({ nickname: (event.detail.value || '').trim().slice(0, 20) });
   },
 
+  /** 选择头像 */
   handleChooseAvatar(event) {
     const { avatarUrl } = event.detail || {};
     if (!avatarUrl) {
@@ -191,10 +206,12 @@ Page({
     this.updateDraftProfile({ avatarUrl });
   },
 
+  /** 选择背景主题 */
   chooseCover(event) {
     this.updateDraftProfile({ coverTheme: event.currentTarget.dataset.value });
   },
 
+  /** 更新草稿资料 */
   updateDraftProfile(patch) {
     const draftProfile = {
       ...this.data.draftProfile,
@@ -207,6 +224,7 @@ Page({
     });
   },
 
+  /** 保存个人资料 */
   saveProfile() {
     const draftProfile = {
       ...this.data.draftProfile,

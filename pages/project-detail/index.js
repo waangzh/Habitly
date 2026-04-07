@@ -1,3 +1,8 @@
+/**
+ * 项目详情页
+ * 展示项目信息、统计数据和打卡记录
+ */
+
 const service = require('../../services/habitService');
 const { formatDisplayDate } = require('../../utils/date');
 
@@ -17,6 +22,7 @@ Page({
     }
   },
 
+  /** 加载项目详情 */
   loadDetail(projectId) {
     const detail = service.getProjectDetail(projectId);
     if (!detail) {
@@ -45,6 +51,7 @@ Page({
     });
   },
 
+  /** 切换项目状态 (暂停/恢复) */
   toggleStatus() {
     if (!this.data.detail) {
       return;

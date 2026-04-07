@@ -1,30 +1,12 @@
+/**
+ * 成绩单页
+ * 展示周报/月报和打卡数据统计
+ */
+
 const service = require('../../services/habitService');
+const { formatDate, getWeekDays, pad } = require('../../utils/date');
 
-function pad(value) {
-  return `${value}`.padStart(2, '0');
-}
-
-function formatDate(date) {
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
-}
-
-function getWeekDays() {
-  const labels = ['日', '一', '二', '三', '四', '五', '六'];
-  const today = new Date();
-  const start = new Date(today);
-  start.setDate(today.getDate() - today.getDay());
-
-  return Array.from({ length: 7 }).map((_, index) => {
-    const date = new Date(start);
-    date.setDate(start.getDate() + index);
-    return {
-      key: formatDate(date),
-      label: labels[date.getDay()],
-      dayNumber: date.getDate(),
-    };
-  });
-}
-
+/** 构建周打卡矩阵 (项目 x 星期) */
 function buildWeekMatrix(projectSummaries) {
   const weekDays = getWeekDays();
 
@@ -46,6 +28,7 @@ function buildWeekMatrix(projectSummaries) {
   });
 }
 
+/** 构建月度洞察数据 */
 function buildMonthInsights(projectSummaries) {
   return projectSummaries.map((summary) => {
     const percent = Math.min(100, summary.totalCheckins * 12);
@@ -66,6 +49,7 @@ function buildMonthInsights(projectSummaries) {
   });
 }
 
+/** 构建月度热力图 */
 function buildMonthHeatmap(projectSummaries) {
   const labels = ['日', '一', '二', '三', '四', '五', '六'];
   const today = new Date();
@@ -116,6 +100,7 @@ function buildMonthHeatmap(projectSummaries) {
   };
 }
 
+/** 构建单个项目的日历视图 */
 function buildSingleProjectCalendar(projectId) {
   if (!projectId) {
     return null;
@@ -166,6 +151,7 @@ function buildSingleProjectCalendar(projectId) {
   };
 }
 
+/** 构建指标趋势数据 (最近7次) */
 function buildMetricTrend(projectId) {
   if (!projectId) {
     return null;
@@ -231,6 +217,7 @@ Page({
     this.loadReport('week');
   },
 
+  /** 加载报表数据 */
   loadReport(periodType) {
     let report = service.getReportCard(periodType);
     if (this.projectId) {
@@ -256,6 +243,7 @@ Page({
     wx.navigateBack();
   },
 
+  /** 切换报表类型 */
   switchTab(event) {
     this.loadReport(event.currentTarget.dataset.tab);
   },

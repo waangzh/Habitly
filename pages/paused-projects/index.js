@@ -1,40 +1,10 @@
+/**
+ * 暂停项目页
+ * 展示所有已暂停的习惯项目
+ */
+
 const service = require('../../services/habitService');
-
-function formatStartedLabel(dateText) {
-  if (!dateText) {
-    return 'Since today';
-  }
-
-  const [year, month, day] = dateText.split('-');
-  return `Since ${month} ${day}, ${year}`;
-}
-
-function getTargetLabel(project) {
-  if (project.targetType === 'forever') {
-    return '\u6c38\u8fdc';
-  }
-
-  if (project.targetValue) {
-    return `${project.targetValue}\u5929`;
-  }
-
-  return '\u957f\u671f';
-}
-
-function buildProjectCard(project) {
-  const detail = service.getProjectDetail(project.projectId);
-  const stats = detail ? detail.stats : { monthCheckins: 0, currentStreak: 0 };
-
-  return {
-    ...project,
-    cardStats: {
-      monthCheckins: stats.monthCheckins || 0,
-      currentStreak: stats.currentStreak || 0,
-      targetLabel: getTargetLabel(project),
-      startedLabel: formatStartedLabel(project.startDate),
-    },
-  };
-}
+const { buildProjectCard } = require('../../utils/project');
 
 Page({
   data: {
@@ -45,6 +15,7 @@ Page({
     this.loadProjects();
   },
 
+  /** 加载暂停项目列表 */
   loadProjects() {
     this.setData({
       projects: service.getProjects('paused').map(buildProjectCard),
@@ -69,10 +40,7 @@ Page({
 
   handleResume(event) {
     service.updateProjectStatus(event.detail.projectId, 'active');
-    wx.showToast({
-      title: '\u9879\u76ee\u5df2\u6062\u590d',
-      icon: 'success',
-    });
+    wx.showToast({ title: '项目已恢复', icon: 'success' });
     this.loadProjects();
   },
 });

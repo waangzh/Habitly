@@ -1,12 +1,19 @@
+/**
+ * 项目表单页
+ * 创建和编辑习惯项目
+ */
+
 const service = require('../../services/habitService');
 const { formatDate } = require('../../utils/date');
 
+/** 颜色主题选项 */
 const COLOR_THEMES = [
   { key: 'blue', label: '晴空蓝' },
   { key: 'green', label: '薄荷绿' },
   { key: 'orange', label: '暖橙色' },
 ];
 
+/** 提醒频率选项 */
 const FREQUENCIES = ['每天', '工作日', '周日'];
 const HOURS = Array.from({ length: 24 }, (_, index) => `${index}`.padStart(2, '0'));
 const MINUTES = Array.from({ length: 60 }, (_, index) => `${index}`.padStart(2, '0'));
@@ -68,8 +75,7 @@ Page({
     wx.navigateBack();
   },
 
-  noop() {},
-
+  /** 输入框变更 */
   handleInput(event) {
     const field = event.currentTarget.dataset.field;
     this.setData({
@@ -77,6 +83,7 @@ Page({
     });
   },
 
+  /** 开关变更 */
   handleSwitch(event) {
     const field = event.currentTarget.dataset.field;
     this.setData({
@@ -84,12 +91,14 @@ Page({
     });
   },
 
+  /** 选择图标 */
   chooseIcon(event) {
     this.setData({
       'form.icon': event.currentTarget.dataset.icon,
     });
   },
 
+  /** 选择颜色主题 */
   chooseTheme(event) {
     this.setData({
       'form.colorTheme': event.currentTarget.dataset.theme,
@@ -114,6 +123,7 @@ Page({
     });
   },
 
+  /** 确认添加提醒 */
   confirmReminderPicker() {
     const [frequencyIndex, hourIndex, minuteIndex] = this.data.pickerValue;
     const timeText = `${this.data.frequencyOptions[frequencyIndex]} ${this.data.hourOptions[hourIndex]}:${this.data.minuteOptions[minuteIndex]}`;
@@ -129,6 +139,7 @@ Page({
     });
   },
 
+  /** 删除提醒 */
   removeReminder(event) {
     const index = event.currentTarget.dataset.index;
     this.setData({
@@ -136,6 +147,7 @@ Page({
     });
   },
 
+  /** 提交表单 */
   submit() {
     const form = this.data.form;
     if (!form.title.trim()) {

@@ -1,3 +1,8 @@
+/**
+ * 历史记录页
+ * 按月展示所有打卡记录
+ */
+
 const service = require('../../services/habitService');
 const { formatDisplayDate } = require('../../utils/date');
 

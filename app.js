@@ -1,3 +1,8 @@
+/**
+ * Habitly - 习惯养成小程序
+ * 帮助用户建立和追踪日常习惯
+ */
+
 App({
   globalData: {
     user: {

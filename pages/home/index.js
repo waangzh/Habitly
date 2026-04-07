@@ -1,3 +1,8 @@
+/**
+ * 首页
+ * 展示今日习惯列表和打卡功能
+ */
+
 const service = require('../../services/habitService');
 const { formatDate, formatDisplayDate } = require('../../utils/date');
 const { getSyncStatusText } = require('../../store/ui');
@@ -26,6 +31,7 @@ Page({
     this.loadHomeData(this.data.selectedDate);
   },
 
+  /** 加载首页数据 */
   loadHomeData(date) {
     const homeData = service.getHomeData(date);
     const app = getApp();
@@ -41,10 +47,12 @@ Page({
     });
   },
 
+  /** 选择日期 */
   handleSelectDate(event) {
     this.loadHomeData(event.detail.date);
   },
 
+  /** 打卡/取消打卡 */
   handleCheckin(event) {
     const targetProject = this.data.projects.find((item) => item.projectId === event.detail.projectId);
     const result = service.toggleCheckin({
@@ -52,6 +60,7 @@ Page({
       date: this.data.selectedDate,
     });
 
+    // 打卡成功且项目开启了附加信息，弹出输入面板
     if (result.checked && targetProject && (targetProject.moodEnabled || targetProject.scoreEnabled || targetProject.metricEnabled)) {
       this.setData({
         showExtraSheet: true,
@@ -72,12 +81,14 @@ Page({
     this.loadHomeData(this.data.selectedDate);
   },
 
+  /** 选择心情 */
   chooseMood(event) {
     this.setData({
       'extraForm.moodValue': event.currentTarget.dataset.value,
     });
   },
 
+  /** 输入附加信息 */
   handleExtraInput(event) {
     const field = event.currentTarget.dataset.field;
     this.setData({
@@ -85,8 +96,7 @@ Page({
     });
   },
 
-  noop() {},
-
+  /** 关闭附加信息面板 */
   closeExtraSheet() {
     this.setData({
       showExtraSheet: false,
@@ -94,6 +104,7 @@ Page({
     });
   },
 
+  /** 保存附加信息 */
   saveExtraSheet() {
     const project = this.data.currentExtraProject;
     if (!project) {
