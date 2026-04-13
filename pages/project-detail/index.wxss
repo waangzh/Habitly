@@ -19,3 +19,7 @@
 .reward-status { min-width:96rpx; padding:12rpx 0; text-align:center; border-radius:999rpx; background:#f5f7fb; color:var(--text-secondary); font-size:22rpx; }
 .reward-status.reached { background:#e8f8ef; color:#37a86d; }
 .record-extra { color:var(--text-secondary); font-size:24rpx; text-align:right; line-height:1.8; }
+.insight-item { padding-top:18rpx; border-top:2rpx solid var(--line); }
+.insight-item:first-of-type { padding-top:8rpx; border-top:0; }
+.insight-label { font-size:24rpx; font-weight:600; color:var(--brand-deep); }
+.insight-text { margin-top:8rpx; color:var(--text-secondary); font-size:24rpx; line-height:1.8; }

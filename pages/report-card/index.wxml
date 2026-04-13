@@ -1,5 +1,5 @@
 <view class="app-shell">
-  <page-header title="{{projectTitle ? (projectTitle + ' 成绩单') : '成绩单'}}" show-back="{{true}}" bind:back="goBack" />
+  <page-header title="{{pageTitle}}" show-back="{{true}}" bind:back="goBack" />
   <scroll-view class="page-scroll" scroll-y>
     <view class="report-hero">
       <view class="hero-copy">
@@ -32,10 +32,31 @@
         </view>
       </view>
 
+      <view wx:if="{{aiInsight}}" class="shell-card insight-card">
+        <view class="section-head">
+          <view>
+            <view class="section-title">AI 洞察</view>
+            <view class="section-subtitle">把统计翻译成一句更容易抓住的小提醒。</view>
+          </view>
+        </view>
+        <view class="insight-item">
+          <view class="insight-label">{{activeTab === 'week' ? '这周做得好的点' : '这个月做得好的点'}}</view>
+          <view class="insight-text">{{aiInsight.summary}}</view>
+        </view>
+        <view class="insight-item">
+          <view class="insight-label">可能的阻力</view>
+          <view class="insight-text">{{aiInsight.blockerHypothesis}}</view>
+        </view>
+        <view class="insight-item">
+          <view class="insight-label">下一个最小动作</view>
+          <view class="insight-text">{{aiInsight.nextStep}}</view>
+        </view>
+      </view>
+
       <view class="heatmap shell-card" wx:if="{{monthHeatmap && !isProjectMode}}">
         <view class="section-head">
           <view>
-            <view class="section-title">月历热力块</view>
+            <view class="section-title">月历热力图</view>
             <view class="section-subtitle">{{monthHeatmap.monthLabel}}</view>
           </view>
           <view class="legend">
@@ -63,7 +84,7 @@
         <view class="section-head">
           <view>
             <view class="section-title">本月打卡月视图</view>
-            <view class="section-subtitle">{{singleProjectCalendar.monthLabel}} · 这里只展示这个项目自己的打卡节奏</view>
+            <view class="section-subtitle">{{singleProjectCalendar.monthLabel}} · 这里只显示这个项目自己的打卡节奏</view>
           </view>
         </view>
         <view class="calendar-week">
@@ -110,7 +131,7 @@
           <view class="section-head">
             <view>
               <view class="section-title">本周完成矩阵</view>
-              <view class="section-subtitle">横向看这周的节奏，能更容易感受到连续性。</view>
+              <view class="section-subtitle">横向看这一周的节奏，会更容易感受到连续性。</view>
             </view>
           </view>
           <view class="week-header">

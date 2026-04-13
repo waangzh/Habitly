@@ -1,6 +1,15 @@
 <view class="app-shell">
   <page-header title="{{isEdit ? '编辑项目' : '创建项目'}}" show-back="{{true}}" right-text="保存" bind:back="goBack" bind:righttap="submit" />
   <scroll-view class="page-scroll" scroll-y>
+    <view class="card form-card ai-card">
+      <view class="label">AI 建项目助手</view>
+      <view class="hint">写一句你想养成的习惯，它会先帮你整理出一版草案。</view>
+      <textarea class="textarea" maxlength="200" placeholder="比如：我想在工作日坚持早睡，晚上 11 点前放下手机" value="{{form.aiPrompt}}" data-field="aiPrompt" bindinput="handleInput"></textarea>
+      <view class="ai-actions">
+        <view class="ai-btn" bindtap="generateDraft">{{generatingDraft ? '生成中...' : '生成草案'}}</view>
+      </view>
+    </view>
+
     <view class="card form-card">
       <view class="field">
         <view class="label">项目名称</view>
@@ -31,19 +40,30 @@
     </view>
 
     <view class="card form-card">
+      <view class="label">周期安排</view>
+      <view class="schedule-row">
+        <view class="schedule-pill {{form.scheduleType === 'daily' ? 'active' : ''}}" data-value="daily" bindtap="chooseScheduleType">每天</view>
+        <view class="schedule-pill {{form.scheduleType === 'weekly-custom' ? 'active' : ''}}" data-value="weekly-custom" bindtap="chooseScheduleType">自定义每周</view>
+      </view>
+      <view wx:if="{{form.scheduleType === 'weekly-custom'}}" class="weekday-row">
+        <view wx:for="{{weekdayOptionsView}}" wx:key="value" class="weekday-pill {{item.active ? 'active' : ''}}" data-value="{{item.value}}" bindtap="toggleScheduleDay">{{item.label}}</view>
+      </view>
+    </view>
+
+    <view class="card form-card">
       <view class="switch-row">
         <view>
           <view class="label">提醒已开启</view>
-          <view class="hint">可添加多个提醒时间，关闭后会保留已有设置。</view>
+          <view class="hint">可以添加多个提醒时间，关闭后会保留已有设置。</view>
         </view>
         <switch checked="{{form.reminderEnabled}}" color="#5b91ff" data-field="reminderEnabled" bindchange="handleSwitch" />
       </view>
       <view wx:if="{{form.reminderEnabled}}" class="reminder-list">
         <view wx:for="{{form.reminderTimes}}" wx:key="*this" class="reminder-item">
-          <view class="remove-pill" data-index="{{index}}" bindtap="removeReminder">−</view>
+          <view class="remove-pill" data-index="{{index}}" bindtap="removeReminder">-</view>
           <view class="reminder-text">{{item}}</view>
         </view>
-        <view class="add-reminder" bindtap="openReminderPicker">＋ 点击添加更多提醒时间</view>
+        <view class="add-reminder" bindtap="openReminderPicker">+ 点击添加更多提醒时间</view>
       </view>
     </view>
 
@@ -56,14 +76,19 @@
         <view class="label">给自己评分</view>
         <switch checked="{{form.scoreEnabled}}" color="#5b91ff" data-field="scoreEnabled" bindchange="handleSwitch" />
       </view>
-      <view class="switch-row no-border">
+      <view class="switch-row {{form.metricEnabled ? '' : 'no-border'}}">
         <view>
-          <view class="label">成绩记录占位</view>
-          <view class="hint">P1 会接上数值记录与趋势展示</view>
+          <view class="label">记录数值成绩</view>
+          <view class="hint">适合记录时长、次数、公里数这类可累计数据。</view>
         </view>
         <switch checked="{{form.metricEnabled}}" color="#5b91ff" data-field="metricEnabled" bindchange="handleSwitch" />
       </view>
+      <view wx:if="{{form.metricEnabled}}" class="metric-unit-wrap">
+        <view class="label">数值单位</view>
+        <input class="input" placeholder="比如：分钟、次、页" value="{{form.metricUnit}}" data-field="metricUnit" bindinput="handleInput" />
+      </view>
     </view>
+
     <view class="submit safe-bottom" bindtap="submit">{{isEdit ? '保存修改' : '创建项目'}}</view>
   </scroll-view>
 
@@ -74,9 +99,6 @@
         <view class="picker-title">选择提醒时间</view>
       </view>
       <picker-view class="picker-view" indicator-style="height: 72rpx;" value="{{pickerValue}}" bindchange="handlePickerChange">
-        <picker-view-column>
-          <view wx:for="{{frequencyOptions}}" wx:key="*this" class="picker-item">{{item}}</view>
-        </picker-view-column>
         <picker-view-column>
           <view wx:for="{{hourOptions}}" wx:key="*this" class="picker-item">{{item}} 点</view>
         </picker-view-column>

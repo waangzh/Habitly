@@ -100,6 +100,33 @@
   background: var(--line);
 }
 
+.insight-card {
+  padding-top: 28rpx;
+}
+
+.insight-item {
+  padding-top: 18rpx;
+  border-top: 2rpx solid var(--line);
+}
+
+.insight-item:first-of-type {
+  border-top: 0;
+  padding-top: 4rpx;
+}
+
+.insight-label {
+  font-size: 24rpx;
+  font-weight: 600;
+  color: var(--brand-deep);
+}
+
+.insight-text {
+  margin-top: 10rpx;
+  font-size: 24rpx;
+  line-height: 1.8;
+  color: var(--text-secondary);
+}
+
 .section-head {
   display: flex;
   justify-content: space-between;

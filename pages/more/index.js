@@ -5,20 +5,15 @@
 
 const service = require('../../services/habitService');
 const { getSyncStatusText } = require('../../store/ui');
-const { getStorage, setStorage } = require('../../utils/storage');
 
-const USER_PROFILE_KEY = 'habit-user-profile';
-
-/** 背景主题选项 */
 const COVER_OPTIONS = [
   { key: 'sky', name: '晴空蓝' },
   { key: 'mint', name: '薄荷绿' },
-  { key: 'peach', name: '蜜桃橙' },
+  { key: 'peach', name: '蜜桃粉' },
 ];
 const DEFAULT_AVATAR_LABEL = '默认';
 
-/** 获取用户资料 */
-function getUserProfile(overview) {
+function getUserProfile(overview, profile) {
   const app = typeof getApp === 'function' ? getApp() : null;
   const globalUser = app && app.globalData ? app.globalData.user || {} : {};
 
@@ -28,26 +23,12 @@ function getUserProfile(overview) {
     bio: '把每一次小坚持，都变成看得见的成长。',
     coverTheme: 'sky',
     ...overview,
+    ...profile,
     ...globalUser,
-    ...getStorage(USER_PROFILE_KEY, {}),
   };
 }
 
-/** 构建用户视图数据 */
-function buildUserViewModel(overview, syncText, profile) {
-  const projects = service.getProjects();
-  const achievement = service.getAchievementSummary();
-  const historyGroups = service.getHistoryGrouped();
-  const uniqueDays = new Set();
-
-  historyGroups.forEach((group) => {
-    (group.items || []).forEach((item) => {
-      if (item.date) {
-        uniqueDays.add(item.date);
-      }
-    });
-  });
-
+function buildUserViewModel(overview, syncText, profile, quickStats) {
   return {
     hero: {
       avatarLabel: DEFAULT_AVATAR_LABEL,
@@ -58,11 +39,7 @@ function buildUserViewModel(overview, syncText, profile) {
       coverTag: COVER_OPTIONS.find((item) => item.key === profile.coverTheme)?.name || '温柔陪伴',
       coverTheme: profile.coverTheme || 'sky',
     },
-    quickStats: [
-      { key: 'days', value: String(uniqueDays.size), label: '记录天数' },
-      { key: 'focus', value: String(projects.filter((item) => item.status === 'active').length), label: '进行项目' },
-      { key: 'streak', value: String(achievement.longestStreak || 0), label: '最长连续' },
-    ],
+    quickStats,
     settingGroups: [
       {
         key: 'account',
@@ -87,8 +64,8 @@ function buildUserViewModel(overview, syncText, profile) {
         title: '更多设置',
         items: [
           { key: 'notifications', title: '通知与订阅', desc: '预留微信通知和站内提醒入口', action: 'noop' },
-          { key: 'privacy', title: '隐私与数据', desc: '管理本地数据、导出和授权设置', action: 'noop' },
-          { key: 'reset', title: '重置演示数据', desc: '清空当前演示项目与记录，重新体验流程', action: 'reset' },
+          { key: 'privacy', title: '隐私与数据', desc: '管理本地缓存与授权相关设置', action: 'noop' },
+          { key: 'seed', title: '开发演示数据', desc: '当前只保留开发提示，不在前端直接执行 seed', action: 'seed' },
         ],
       },
     ],
@@ -106,34 +83,67 @@ function buildUserViewModel(overview, syncText, profile) {
   };
 }
 
+function collectQuickStats(projects, achievement, historyGroups) {
+  const uniqueDays = new Set();
+
+  (historyGroups || []).forEach((group) => {
+    (group.items || []).forEach((item) => {
+      if (item.date) {
+        uniqueDays.add(item.date);
+      }
+    });
+  });
+
+  return [
+    { key: 'days', value: String(uniqueDays.size), label: '记录天数' },
+    { key: 'focus', value: String((projects || []).length), label: '进行项目' },
+    { key: 'streak', value: String((achievement && achievement.longestStreak) || 0), label: '最长连续' },
+  ];
+}
+
 Page({
   data: {
     overview: null,
     syncText: '',
+    quickStats: [],
     userView: null,
     draftProfile: null,
     editingSection: '',
   },
 
-  onShow() {
-    this.refreshView();
+  async onShow() {
+    await this.refreshView();
   },
 
-  /** 刷新视图数据 */
-  refreshView() {
-    const overview = service.getMoreOverview();
-    const syncText = getSyncStatusText(overview.syncStatus);
-    const profile = getUserProfile(overview);
+  async refreshView() {
+    try {
+      const [overview, profile, projects, achievement, historyGroups] = await Promise.all([
+        service.getMoreOverview(),
+        service.getProfile(),
+        service.getProjects('active'),
+        service.getAchievementSummary(),
+        service.getHistoryGrouped(),
+      ]);
+      const app = getApp();
+      const syncText = getSyncStatusText((app.globalData.user || {}).syncStatus || overview.syncStatus);
+      const mergedProfile = getUserProfile(overview, profile);
+      const quickStats = collectQuickStats(projects, achievement, historyGroups);
 
-    this.setData({
-      overview,
-      syncText,
-      draftProfile: profile,
-      userView: buildUserViewModel(overview, syncText, profile),
-    });
+      this.setData({
+        overview,
+        syncText,
+        quickStats,
+        draftProfile: mergedProfile,
+        userView: buildUserViewModel(overview, syncText, mergedProfile, quickStats),
+      });
+    } catch (error) {
+      wx.showToast({
+        title: error.message || '更多页加载失败',
+        icon: 'none',
+      });
+    }
   },
 
-  /** 处理设置项点击 */
   handleAction(event) {
     const action = event.currentTarget.dataset.action;
 
@@ -150,27 +160,16 @@ Page({
     if (action === 'profile' || action === 'background') {
       this.setData({
         editingSection: this.data.editingSection === action ? '' : action,
-        userView: buildUserViewModel(this.data.overview, this.data.syncText, this.data.draftProfile),
+        userView: buildUserViewModel(this.data.overview, this.data.syncText, this.data.draftProfile, this.data.quickStats),
       });
       return;
     }
 
-    if (action === 'reset') {
+    if (action === 'seed') {
       wx.showModal({
-        title: '重置演示数据',
-        content: '会清空当前的项目与打卡记录，但不会删除你的个人资料。确认继续吗？',
-        success: (result) => {
-          if (!result.confirm) {
-            return;
-          }
-
-          service.resetDemoData();
-          this.refreshView();
-          wx.showToast({
-            title: '演示数据已重置',
-            icon: 'success',
-          });
-        },
+        title: '开发演示数据',
+        content: '后端文档里没有开放前端直接执行 seed 的接口。需要重置演示数据时，请在服务端开发环境处理。',
+        showCancel: false,
       });
       return;
     }
@@ -181,22 +180,18 @@ Page({
     });
   },
 
-  /** 昵称输入 */
   handleNicknameInput(event) {
     this.updateDraftProfile({ nickname: (event.detail.value || '').slice(0, 20) });
   },
 
-  /** 简介输入 */
   handleBioInput(event) {
     this.updateDraftProfile({ bio: (event.detail.value || '').slice(0, 40) });
   },
 
-  /** 昵称失焦时去除空格 */
   handleNicknameBlur(event) {
     this.updateDraftProfile({ nickname: (event.detail.value || '').trim().slice(0, 20) });
   },
 
-  /** 选择头像 */
   handleChooseAvatar(event) {
     const { avatarUrl } = event.detail || {};
     if (!avatarUrl) {
@@ -206,12 +201,10 @@ Page({
     this.updateDraftProfile({ avatarUrl });
   },
 
-  /** 选择背景主题 */
   chooseCover(event) {
     this.updateDraftProfile({ coverTheme: event.currentTarget.dataset.value });
   },
 
-  /** 更新草稿资料 */
   updateDraftProfile(patch) {
     const draftProfile = {
       ...this.data.draftProfile,
@@ -220,17 +213,16 @@ Page({
 
     this.setData({
       draftProfile,
-      userView: buildUserViewModel(this.data.overview, this.data.syncText, draftProfile),
+      userView: buildUserViewModel(this.data.overview, this.data.syncText, draftProfile, this.data.quickStats),
     });
   },
 
-  /** 保存个人资料 */
-  saveProfile() {
+  async saveProfile() {
     const draftProfile = {
-      ...this.data.draftProfile,
       nickname: (this.data.draftProfile.nickname || '').trim(),
       bio: (this.data.draftProfile.bio || '').trim(),
       avatarUrl: this.data.draftProfile.avatarUrl || '',
+      coverTheme: this.data.draftProfile.coverTheme || 'sky',
     };
 
     if (!draftProfile.nickname) {
@@ -241,23 +233,25 @@ Page({
       return;
     }
 
-    const app = typeof getApp === 'function' ? getApp() : null;
-    if (app && app.globalData) {
+    try {
+      const profile = await service.updateProfile(draftProfile);
+      const app = getApp();
       app.globalData.user = {
-        ...app.globalData.user,
-        ...draftProfile,
-        updatedAt: new Date().toISOString(),
+        ...(app.globalData.user || {}),
+        ...profile,
       };
-      setStorage(USER_PROFILE_KEY, app.globalData.user);
-    } else {
-      setStorage(USER_PROFILE_KEY, draftProfile);
-    }
 
-    this.setData({ editingSection: '' });
-    this.refreshView();
-    wx.showToast({
-      title: '个人信息已保存',
-      icon: 'success',
-    });
+      this.setData({ editingSection: '' });
+      await this.refreshView();
+      wx.showToast({
+        title: '个人信息已保存',
+        icon: 'success',
+      });
+    } catch (error) {
+      wx.showToast({
+        title: error.message || '保存失败',
+        icon: 'none',
+      });
+    }
   },
 });

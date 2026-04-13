@@ -26,6 +26,22 @@
         </view>
       </view>
 
+      <view wx:if="{{aiInsight}}" class="section card">
+        <view class="section-title">AI 洞察</view>
+        <view class="insight-item">
+          <view class="insight-label">这周做得好的点</view>
+          <view class="insight-text">{{aiInsight.summary}}</view>
+        </view>
+        <view class="insight-item">
+          <view class="insight-label">可能的阻力</view>
+          <view class="insight-text">{{aiInsight.blockerHypothesis}}</view>
+        </view>
+        <view class="insight-item">
+          <view class="insight-label">下一个最小动作</view>
+          <view class="insight-text">{{aiInsight.nextStep}}</view>
+        </view>
+      </view>
+
       <view class="action-row">
         <view class="action-card card" bindtap="goReport">成绩单</view>
         <view class="action-card card" bindtap="toggleStatus">{{detail.project.status === 'active' ? '暂停项目' : '恢复项目'}}</view>
@@ -34,7 +50,7 @@
       <view class="section card">
         <view class="section-title">提醒与记录</view>
         <view class="info-line">提醒状态：{{detail.project.reminderEnabled ? '已开启' : '已关闭'}}</view>
-        <view class="info-line" wx:if="{{detail.project.reminderTimes.length}}">提醒时间：{{detail.project.reminderTimes.join('、')}}</view>
+        <view class="info-line" wx:if="{{detail.project.reminderTimes.length}}">提醒时间：{{detail.project.displayReminderTimes}}</view>
         <view class="info-line">心情记录：{{detail.project.moodEnabled ? '已开启' : '未开启'}}</view>
         <view class="info-line">自评分：{{detail.project.scoreEnabled ? '已开启' : '未开启'}}</view>
         <view class="info-line">成绩记录：{{detail.project.metricEnabled ? '已开启' : '未开启'}}</view>
@@ -47,7 +63,7 @@
             <view class="reward-title">{{item.title}}</view>
             <view class="reward-desc">{{item.conditionText}}</view>
           </view>
-          <view class="reward-status {{item.reached ? 'reached' : ''}}">{{item.reached ? '已达成' : '进行中'}}</view>
+          <view class="reward-status {{item.reached ? 'reached' : ''}}">{{item.reached ? '已达到' : '进行中'}}</view>
         </view>
       </view>
 

@@ -8,12 +8,10 @@ const service = require('../../services/habitService');
 const { windowWidth } = wx.getSystemInfoSync();
 const RATIO = windowWidth / 750;
 
-/** rpx 转 px */
 function rpxToPx(value) {
   return value * RATIO;
 }
 
-/** 绘制圆角矩形路径 */
 function drawRoundRectPath(ctx, x, y, width, height, radius) {
   const safeRadius = Math.min(radius, width / 2, height / 2);
   ctx.beginPath();
@@ -29,7 +27,6 @@ function drawRoundRectPath(ctx, x, y, width, height, radius) {
   ctx.closePath();
 }
 
-/** 构建周打卡图表数据模型 */
 function buildChartModel(weekly) {
   const chartHeight = 240;
   const axisValues = [0, 2, 4, 6, 8];
@@ -80,11 +77,17 @@ Page({
 
   drawTimer: null,
 
-  onShow() {
-    this.setData({
-      summary: service.getAchievementSummary(),
-    });
-    this.loadWeeklyChart(this.data.selectedYear);
+  async onShow() {
+    try {
+      const summary = await service.getAchievementSummary();
+      this.setData({ summary });
+      await this.loadWeeklyChart(this.data.selectedYear);
+    } catch (error) {
+      wx.showToast({
+        title: error.message || '成就页加载失败',
+        icon: 'none',
+      });
+    }
   },
 
   onHide() {
@@ -95,9 +98,8 @@ Page({
     this.clearDrawTimer();
   },
 
-  /** 加载指定年份的周图表 */
-  loadWeeklyChart(year) {
-    const weekly = service.getWeeklyCheckinSeries(year);
+  async loadWeeklyChart(year) {
+    const weekly = await service.getWeeklyCheckinSeries(year);
     const weeklyChart = buildChartModel(weekly);
 
     this.setData({
@@ -108,16 +110,16 @@ Page({
     });
   },
 
-  handlePrevYear() {
-    this.loadWeeklyChart(this.data.selectedYear - 1);
+  async handlePrevYear() {
+    await this.loadWeeklyChart(this.data.selectedYear - 1);
   },
 
-  handleNextYear() {
+  async handleNextYear() {
     if (this.data.selectedYear >= this.data.summaryYear) {
       return;
     }
 
-    this.loadWeeklyChart(this.data.selectedYear + 1);
+    await this.loadWeeklyChart(this.data.selectedYear + 1);
   },
 
   clearDrawTimer() {
@@ -137,7 +139,6 @@ Page({
     }, 60);
   },
 
-  /** 绘制周趋势图表 */
   drawWeeklyChart() {
     const chart = this.data.weeklyChart;
     if (!chart || !chart.points.length) {
@@ -153,7 +154,6 @@ Page({
 
     ctx.clearRect(0, 0, width, height);
 
-    // 绘制网格线
     chart.axisValues.forEach((item) => {
       const bottom = Number(item.bottom.replace('rpx', ''));
       const y = rpxToPx(240 - bottom);
@@ -165,7 +165,6 @@ Page({
       ctx.stroke();
     });
 
-    // 绘制填充区域
     ctx.beginPath();
     ctx.moveTo(points[0].x, baselineY);
     ctx.lineTo(points[0].x, points[0].y);
@@ -180,7 +179,6 @@ Page({
     ctx.setFillStyle('rgba(101, 186, 255, 0.16)');
     ctx.fill();
 
-    // 绘制曲线
     ctx.beginPath();
     ctx.setStrokeStyle('#94d1ff');
     ctx.setLineWidth(rpxToPx(8));
@@ -195,7 +193,6 @@ Page({
     }
     ctx.stroke();
 
-    // 绘制数据点
     points.forEach((point) => {
       ctx.beginPath();
       ctx.setFillStyle(point.active ? '#4baef8' : '#56b6ff');
@@ -209,7 +206,6 @@ Page({
       ctx.stroke();
     });
 
-    // 绘制当前周气泡
     const activePoint = points.find((item) => item.active);
     if (activePoint && activePoint.count) {
       const bubbleWidth = rpxToPx(56);
@@ -221,7 +217,6 @@ Page({
       drawRoundRectPath(ctx, bubbleX, bubbleY, bubbleWidth, bubbleHeight, rpxToPx(22));
       ctx.fill();
 
-      // 气泡尖角
       ctx.beginPath();
       ctx.moveTo(activePoint.x - rpxToPx(8), bubbleY + bubbleHeight - rpxToPx(2));
       ctx.lineTo(activePoint.x + rpxToPx(8), bubbleY + bubbleHeight - rpxToPx(2));
@@ -230,7 +225,6 @@ Page({
       ctx.setFillStyle('#4baef8');
       ctx.fill();
 
-      // 气泡文字
       ctx.setFillStyle('#ffffff');
       ctx.setFontSize(rpxToPx(24));
       ctx.setTextAlign('center');

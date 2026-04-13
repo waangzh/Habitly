@@ -11,15 +11,22 @@ Page({
     projects: [],
   },
 
-  onShow() {
-    this.loadProjects();
+  async onShow() {
+    await this.loadProjects();
   },
 
-  /** 加载暂停项目列表 */
-  loadProjects() {
-    this.setData({
-      projects: service.getProjects('paused').map(buildProjectCard),
-    });
+  async loadProjects() {
+    try {
+      const projects = await service.getProjects('paused');
+      this.setData({
+        projects: projects.map(buildProjectCard),
+      });
+    } catch (error) {
+      wx.showToast({
+        title: error.message || '项目加载失败',
+        icon: 'none',
+      });
+    }
   },
 
   goBack() {
@@ -38,9 +45,13 @@ Page({
     });
   },
 
-  handleResume(event) {
-    service.updateProjectStatus(event.detail.projectId, 'active');
-    wx.showToast({ title: '项目已恢复', icon: 'success' });
-    this.loadProjects();
+  async handleResume(event) {
+    try {
+      await service.updateProjectStatus(event.detail.projectId, 'active');
+      wx.showToast({ title: '项目已恢复', icon: 'success' });
+      await this.loadProjects();
+    } catch (error) {
+      wx.showToast({ title: error.message || '操作失败', icon: 'none' });
+    }
   },
 });

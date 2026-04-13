@@ -11,17 +11,25 @@ Page({
     groups: [],
   },
 
-  onShow() {
-    this.setData({
-      groups: service.getHistoryGrouped().map((group) => ({
-        ...group,
-        items: group.items.map((item) => ({
-          ...item,
-          displayDate: formatDisplayDate(item.date),
-          checkedTime: item.checkedAt.slice(11, 16),
+  async onShow() {
+    try {
+      const groups = await service.getHistoryGrouped();
+      this.setData({
+        groups: groups.map((group) => ({
+          ...group,
+          items: (group.items || []).map((item) => ({
+            ...item,
+            displayDate: formatDisplayDate(item.date),
+            checkedTime: item.checkedAt ? item.checkedAt.slice(11, 16) : '',
+          })),
         })),
-      })),
-    });
+      });
+    } catch (error) {
+      wx.showToast({
+        title: error.message || '历史加载失败',
+        icon: 'none',
+      });
+    }
   },
 
   goBack() {

@@ -5,7 +5,9 @@
       <view class="welcome">今天想先完成哪一件小事？</view>
       <view class="subtitle">{{displayDate}} · {{syncText}}</view>
     </view>
+
     <week-calendar items="{{weekDays}}" selected-date="{{selectedDate}}" bind:select="handleSelectDate" />
+
     <view class="summary card">
       <view class="summary-item">
         <view class="summary-label">待完成</view>
@@ -16,6 +18,14 @@
         <view class="summary-label">已完成</view>
         <view class="summary-value success">{{completedCount}}</view>
       </view>
+    </view>
+
+    <view class="nudge-card card">
+      <view class="nudge-head">
+        <view class="nudge-title">今日建议</view>
+        <view class="nudge-tag">{{homeNudge.suggestionTag}}</view>
+      </view>
+      <view class="nudge-message">{{homeNudge.message}}</view>
     </view>
 
     <block wx:if="{{!projects.length}}">
@@ -34,10 +44,12 @@
       <view class="brand-text">把微小坚持，慢慢养成稳定节奏。</view>
     </view>
   </scroll-view>
+
   <view class="floating-actions">
     <view class="action-chip" bindtap="goHistory">历史</view>
     <view class="action-chip primary" bindtap="goCreate">新建</view>
   </view>
+
   <bottom-tab-bar current="home" />
 
   <view wx:if="{{showExtraSheet && currentExtraProject}}" class="sheet-mask" catchtap="closeExtraSheet">
@@ -66,6 +78,41 @@
         <view class="sheet-btn ghost" bindtap="closeExtraSheet">稍后再说</view>
         <view class="sheet-btn primary" bindtap="saveExtraSheet">保存记录</view>
       </view>
+    </view>
+  </view>
+
+  <view wx:if="{{coachState.visible}}" class="sheet-mask" catchtap="closeCoachSheet">
+    <view class="coach-panel" catchtap="noop">
+      <view class="sheet-title">小复盘</view>
+      <view class="sheet-subtitle">{{coachState.projectTitle}} 的这一小步，也值得被看见</view>
+
+      <block wx:if="{{coachState.stage === 'entry'}}">
+        <view class="coach-copy">要不要记一下，今天最帮到你的那个小动作？</view>
+        <view class="sheet-actions">
+          <view class="sheet-btn ghost" bindtap="closeCoachSheet">先收下今天</view>
+          <view class="sheet-btn primary" bindtap="startCoach">开始复盘</view>
+        </view>
+      </block>
+
+      <block wx:if="{{coachState.stage === 'question'}}">
+        <view class="coach-question">{{coachState.question}}</view>
+        <view class="coach-hint">{{coachState.hint}}</view>
+        <textarea class="coach-textarea" maxlength="200" placeholder="写下一句就好" value="{{coachState.answer}}" bindinput="handleCoachAnswerInput"></textarea>
+        <view class="sheet-actions">
+          <view class="sheet-btn ghost" bindtap="closeCoachSheet">先这样</view>
+          <view class="sheet-btn primary" bindtap="submitCoachAnswer">{{coachState.loading ? '整理中...' : '生成回应'}}</view>
+        </view>
+      </block>
+
+      <block wx:if="{{coachState.stage === 'result'}}">
+        <view class="coach-result-title">这次的小线索</view>
+        <view class="coach-result-text">{{coachState.reflection}}</view>
+        <view class="coach-result-title">下一次可以试试</view>
+        <view class="coach-result-text">{{coachState.suggestion}}</view>
+        <view class="sheet-actions single">
+          <view class="sheet-btn primary" bindtap="closeCoachSheet">收下这句提醒</view>
+        </view>
+      </block>
     </view>
   </view>
 </view>

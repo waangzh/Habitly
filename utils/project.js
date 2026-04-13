@@ -1,9 +1,7 @@
 /**
  * 项目工具函数
- * 提供项目卡片数据构建等通用功能
+ * 提供项目卡片数据构建等通用能力
  */
-
-const service = require('../services/habitService');
 
 /** 格式化开始日期标签 */
 function formatStartedLabel(dateText) {
@@ -30,8 +28,9 @@ function getTargetLabel(project) {
 
 /** 构建项目卡片视图数据 */
 function buildProjectCard(project) {
-  const detail = service.getProjectDetail(project.projectId);
-  const stats = detail ? detail.stats : { monthCheckins: 0, currentStreak: 0 };
+  const stats = project && project.stats
+    ? project.stats
+    : { monthCheckins: 0, currentStreak: 0 };
 
   return {
     ...project,
