@@ -5,8 +5,24 @@
 
 const service = require('../../services/habitService');
 
-const { windowWidth } = wx.getSystemInfoSync();
+function getWindowWidth() {
+  try {
+    const windowInfo = typeof wx.getWindowInfo === 'function' ? wx.getWindowInfo() : {};
+    return windowInfo.windowWidth || 375;
+  } catch (error) {
+    return 375;
+  }
+}
+
+const windowWidth = getWindowWidth();
 const RATIO = windowWidth / 750;
+const CHART_HEIGHT_RPX = 240;
+const CANVAS_HEIGHT_RPX = 260;
+const CHART_STEP_RPX = 96;
+const AXIS_SEGMENT_COUNT = 4;
+const VISIBLE_WEEKS = 6;
+const CHART_TOP_PADDING_RPX = 24;
+const POINT_HIT_SIZE_RPX = 56;
 
 function rpxToPx(value) {
   return value * RATIO;
@@ -27,42 +43,76 @@ function drawRoundRectPath(ctx, x, y, width, height, radius) {
   ctx.closePath();
 }
 
-function buildChartModel(weekly) {
-  const chartHeight = 240;
-  const axisValues = [0, 2, 4, 6, 8];
-  const scaleMax = Math.max(8, weekly.maxCount || 0);
+function getNiceAxisStep(maxValue, segmentCount) {
+  const safeMax = Math.max(1, maxValue);
+  const rawStep = Math.max(1, Math.ceil(safeMax / segmentCount));
+  const magnitude = 10 ** Math.floor(Math.log10(rawStep));
+  const normalized = rawStep / magnitude;
+  const niceSteps = [1, 2, 3, 4, 5, 6, 8, 10];
+  const step = niceSteps.find((item) => normalized <= item) || 10;
+
+  return step * magnitude;
+}
+
+function clamp(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function getDefaultSelectedWeek(weekly, selectedWeek) {
+  if (selectedWeek) {
+    return selectedWeek;
+  }
+
+  if (weekly.currentWeek) {
+    return weekly.currentWeek;
+  }
+
   const series = weekly.series || [];
-  const step = 96;
-  const visibleWeeks = 6;
-  const chartWidth = Math.max(720, (series.length - 1) * step + 120);
-  const scrollLeft = Math.max(0, (Math.max(0, weekly.currentWeek - visibleWeeks)) * step);
-  const canvasHeight = 260;
+  return series.length ? series[series.length - 1].week : 0;
+}
+
+function buildChartModel(weekly, selectedWeek) {
+  const scaleBase = Math.max(8, weekly.maxCount || 0);
+  const axisStep = getNiceAxisStep(scaleBase, AXIS_SEGMENT_COUNT);
+  const scaleMax = axisStep * AXIS_SEGMENT_COUNT;
+  const series = weekly.series || [];
+  const resolvedSelectedWeek = getDefaultSelectedWeek(weekly, selectedWeek);
+  const chartWidth = Math.max(720, (series.length - 1) * CHART_STEP_RPX + 120);
+  const scrollLeft = Math.max(0, (Math.max(0, resolvedSelectedWeek - VISIBLE_WEEKS)) * CHART_STEP_RPX);
+  const axisValues = Array.from({ length: AXIS_SEGMENT_COUNT + 1 }, (_, index) => index * axisStep);
+  const axisWidth = Math.max(36, String(scaleMax).length * 24 + 8);
+  const plotHeight = CHART_HEIGHT_RPX - CHART_TOP_PADDING_RPX;
 
   return {
     year: weekly.year,
     currentWeek: weekly.currentWeek,
+    selectedWeek: resolvedSelectedWeek,
     chartWidth: `${chartWidth}rpx`,
     chartWidthRpx: chartWidth,
-    canvasHeightRpx: canvasHeight,
+    canvasHeightRpx: CANVAS_HEIGHT_RPX,
     canvasWidthPx: Math.round(rpxToPx(chartWidth)),
-    canvasHeightPx: Math.round(rpxToPx(canvasHeight)),
-    chartInnerHeightPx: rpxToPx(chartHeight),
+    canvasHeightPx: Math.round(rpxToPx(CANVAS_HEIGHT_RPX)),
+    chartInnerHeightPx: rpxToPx(CHART_HEIGHT_RPX),
+    axisWidth: `${axisWidth}rpx`,
     scrollLeft,
     axisValues: axisValues.map((value) => ({
       value,
-      bottom: `${(value / scaleMax) * chartHeight}rpx`,
+      bottom: `${(value / scaleMax) * plotHeight}rpx`,
     })),
     points: series.map((item, index) => ({
       week: item.week,
       count: item.count,
-      left: `${60 + index * step}rpx`,
-      x: rpxToPx(60 + index * step),
-      y: rpxToPx(chartHeight - (item.count / scaleMax) * chartHeight),
+      left: `${60 + index * CHART_STEP_RPX}rpx`,
+      top: `${CHART_TOP_PADDING_RPX + (1 - item.count / scaleMax) * plotHeight}rpx`,
+      hitSize: `${POINT_HIT_SIZE_RPX}rpx`,
+      x: rpxToPx(60 + index * CHART_STEP_RPX),
+      y: rpxToPx(CHART_TOP_PADDING_RPX + (1 - item.count / scaleMax) * plotHeight),
       active: item.week === weekly.currentWeek,
+      selected: item.week === resolvedSelectedWeek,
     })),
     labels: series.map((item, index) => ({
       week: item.week,
-      left: `${60 + index * step}rpx`,
+      left: `${60 + index * CHART_STEP_RPX}rpx`,
     })),
   };
 }
@@ -122,6 +172,65 @@ Page({
     await this.loadWeeklyChart(this.data.selectedYear + 1);
   },
 
+  updateSelectedWeek(week) {
+    const chart = this.data.weeklyChart;
+    if (!chart || !week || chart.selectedWeek === week) {
+      return;
+    }
+
+    const weeklyChart = {
+      ...chart,
+      selectedWeek: week,
+      points: chart.points.map((item) => ({
+        ...item,
+        selected: item.week === week,
+      })),
+    };
+
+    this.setData({ weeklyChart }, () => {
+      this.scheduleDrawWeeklyChart();
+    });
+  },
+
+  handlePointTap(event) {
+    const week = Number(event.currentTarget.dataset.week);
+    if (!week) {
+      return;
+    }
+
+    this.updateSelectedWeek(week);
+  },
+
+  handleChartTap(event) {
+    const chart = this.data.weeklyChart;
+    if (!chart || !chart.points.length) {
+      return;
+    }
+
+    const detail = event.detail || {};
+    const tapX = Number(detail.x);
+    const tapY = Number(detail.y);
+    if (Number.isNaN(tapX) || Number.isNaN(tapY)) {
+      return;
+    }
+
+    const threshold = rpxToPx(POINT_HIT_SIZE_RPX / 2);
+    let nearestPoint = null;
+    let nearestDistance = Infinity;
+
+    chart.points.forEach((point) => {
+      const distance = Math.hypot(point.x - tapX, point.y - tapY);
+      if (distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestPoint = point;
+      }
+    });
+
+    if (nearestPoint && nearestDistance <= threshold) {
+      this.updateSelectedWeek(nearestPoint.week);
+    }
+  },
+
   clearDrawTimer() {
     if (this.drawTimer) {
       clearTimeout(this.drawTimer);
@@ -151,17 +260,20 @@ Page({
     const innerHeight = chart.chartInnerHeightPx;
     const baselineY = innerHeight;
     const points = chart.points;
+    const plotLeft = points.length ? points[0].x : 0;
+    const plotRight = points.length > 1 ? points[points.length - 1].x : width;
 
     ctx.clearRect(0, 0, width, height);
 
     chart.axisValues.forEach((item) => {
       const bottom = Number(item.bottom.replace('rpx', ''));
-      const y = rpxToPx(240 - bottom);
+      const y = baselineY - rpxToPx(bottom);
+
       ctx.beginPath();
       ctx.setStrokeStyle('rgba(145, 196, 255, 0.18)');
       ctx.setLineWidth(1);
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
+      ctx.moveTo(plotLeft, y);
+      ctx.lineTo(plotRight, y);
       ctx.stroke();
     });
 
@@ -194,33 +306,36 @@ Page({
     ctx.stroke();
 
     points.forEach((point) => {
+      const isHighlighted = point.selected;
+
       ctx.beginPath();
-      ctx.setFillStyle(point.active ? '#4baef8' : '#56b6ff');
-      ctx.arc(point.x, point.y, rpxToPx(point.active ? 10 : 8), 0, Math.PI * 2);
+      ctx.setFillStyle(point.selected ? '#4baef8' : '#56b6ff');
+      ctx.arc(point.x, point.y, rpxToPx(isHighlighted ? 10 : 8), 0, Math.PI * 2);
       ctx.fill();
 
       ctx.beginPath();
       ctx.setStrokeStyle('#ffffff');
       ctx.setLineWidth(rpxToPx(4));
-      ctx.arc(point.x, point.y, rpxToPx(point.active ? 10 : 8), 0, Math.PI * 2);
+      ctx.arc(point.x, point.y, rpxToPx(isHighlighted ? 10 : 8), 0, Math.PI * 2);
       ctx.stroke();
     });
 
-    const activePoint = points.find((item) => item.active);
-    if (activePoint && activePoint.count) {
-      const bubbleWidth = rpxToPx(56);
+    const selectedPoint = points.find((item) => item.selected) || points.find((item) => item.active) || points[points.length - 1];
+    if (selectedPoint) {
+      const countText = String(selectedPoint.count);
+      const bubbleWidth = Math.max(rpxToPx(56), rpxToPx(28 + countText.length * 18));
       const bubbleHeight = rpxToPx(42);
-      const bubbleX = activePoint.x - bubbleWidth / 2;
-      const bubbleY = activePoint.y - rpxToPx(60);
+      const bubbleX = clamp(selectedPoint.x - bubbleWidth / 2, 0, width - bubbleWidth);
+      const bubbleY = clamp(selectedPoint.y - rpxToPx(60), rpxToPx(8), baselineY - bubbleHeight - rpxToPx(12));
 
       ctx.setFillStyle('#4baef8');
       drawRoundRectPath(ctx, bubbleX, bubbleY, bubbleWidth, bubbleHeight, rpxToPx(22));
       ctx.fill();
 
       ctx.beginPath();
-      ctx.moveTo(activePoint.x - rpxToPx(8), bubbleY + bubbleHeight - rpxToPx(2));
-      ctx.lineTo(activePoint.x + rpxToPx(8), bubbleY + bubbleHeight - rpxToPx(2));
-      ctx.lineTo(activePoint.x, bubbleY + bubbleHeight + rpxToPx(10));
+      ctx.moveTo(selectedPoint.x - rpxToPx(8), bubbleY + bubbleHeight - rpxToPx(2));
+      ctx.lineTo(selectedPoint.x + rpxToPx(8), bubbleY + bubbleHeight - rpxToPx(2));
+      ctx.lineTo(selectedPoint.x, bubbleY + bubbleHeight + rpxToPx(10));
       ctx.closePath();
       ctx.setFillStyle('#4baef8');
       ctx.fill();
@@ -229,7 +344,7 @@ Page({
       ctx.setFontSize(rpxToPx(24));
       ctx.setTextAlign('center');
       ctx.setTextBaseline('middle');
-      ctx.fillText(String(activePoint.count), activePoint.x, bubbleY + bubbleHeight / 2);
+      ctx.fillText(countText, bubbleX + bubbleWidth / 2, bubbleY + bubbleHeight / 2);
     }
 
     ctx.draw();

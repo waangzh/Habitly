@@ -55,20 +55,28 @@
         </view>
         <view class="weekly-summary">纵轴表示本周打卡次数，横轴表示第几周。曲线已调整为更平滑的趋势变化。</view>
         <view class="weekly-chart">
-          <view class="chart-axis">
+          <view class="chart-axis" style="width: {{weeklyChart.axisWidth}};">
             <view wx:for="{{weeklyChart.axisValues}}" wx:key="value" class="axis-label" style="bottom: {{item.bottom}};">
               {{item.value}}
             </view>
           </view>
           <scroll-view class="chart-scroll" scroll-x enhanced show-scrollbar="false" scroll-left="{{weeklyChart.scrollLeft}}">
             <view class="chart-main" style="width: {{weeklyChart.chartWidth}};">
-              <view wx:for="{{weeklyChart.axisValues}}" wx:key="value" class="chart-grid" style="bottom: {{item.bottom}};" />
               <canvas
                 canvas-id="weeklyTrend"
                 class="trend-canvas"
                 style="width: {{weeklyChart.chartWidth}}; height: {{weeklyChart.canvasHeightRpx}}rpx;"
                 width="{{weeklyChart.canvasWidthPx}}"
                 height="{{weeklyChart.canvasHeightPx}}"
+                bindtap="handleChartTap"
+              />
+              <view
+                wx:for="{{weeklyChart.points}}"
+                wx:key="week"
+                class="chart-point-hit"
+                style="left: {{item.left}}; top: {{item.top}}; width: {{item.hitSize}}; height: {{item.hitSize}};"
+                data-week="{{item.week}}"
+                bindtap="handlePointTap"
               />
               <view class="x-axis">
                 <view
