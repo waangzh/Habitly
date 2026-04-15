@@ -1,5 +1,5 @@
 <view class="app-shell">
-  <page-header title="{{isEdit ? '编辑项目' : '创建项目'}}" show-back="{{true}}" right-text="保存" bind:back="goBack" bind:righttap="submit" />
+  <page-header title="{{isEdit ? '编辑项目' : '创建项目'}}" show-back="{{true}}" right-text="{{isEdit ? '' : '保存'}}" bind:back="goBack" bind:righttap="submit" />
   <scroll-view class="page-scroll" scroll-y>
     <view class="card form-card ai-card">
       <view class="label">AI 建项目助手</view>
@@ -89,7 +89,11 @@
       </view>
     </view>
 
-    <view class="submit safe-bottom" bindtap="submit">{{isEdit ? '保存修改' : '创建项目'}}</view>
+    <view wx:if="{{isEdit}}" class="submit-row safe-bottom">
+      <view class="submit danger" bindtap="deleteProject">删除</view>
+      <view class="submit primary" bindtap="submit">保存修改</view>
+    </view>
+    <view wx:else class="submit primary safe-bottom" bindtap="submit">创建项目</view>
   </scroll-view>
 
   <view wx:if="{{showReminderPicker}}" class="picker-mask" catchtap="closeReminderPicker">

@@ -117,6 +117,13 @@ async function updateProjectStatus(projectId, status) {
   }));
 }
 
+async function deleteProject(projectId) {
+  return request({
+    url: `/projects/${projectId}`,
+    method: 'DELETE',
+  });
+}
+
 async function getHomeData(date) {
   return mapHomeData(await request({
     url: '/home',
@@ -260,6 +267,7 @@ module.exports = {
   DEFAULT_ICONS,
   THEME_MAP,
   createProject,
+  deleteProject,
   getAchievementSummary,
   getHistoryGrouped,
   getHomeData,

@@ -1,4 +1,4 @@
-<view class="project-card" bindtap="onDetail">
+<view class="project-card" bindtap="onDetail" bindlongpress="onMore">
   <view
     class="project-hero {{paused ? 'paused' : ''}}"
     style="background: linear-gradient(135deg, {{project.colorSet.start}}, {{project.colorSet.end}});"

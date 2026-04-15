@@ -273,6 +273,55 @@ Page({
     }
   },
 
+  async deleteProject() {
+    if (!this.data.isEdit || !this.data.projectId) {
+      return;
+    }
+
+    const modalResult = await new Promise((resolve) => {
+      wx.showModal({
+        title: '删除项目',
+        content: '删除后，这个项目将不再出现在首页和项目列表里，但历史记录会继续保留。确定删除吗？',
+        confirmColor: '#ff5e67',
+        success: resolve,
+        fail: () => resolve({ confirm: false }),
+      });
+    });
+
+    if (!modalResult.confirm) {
+      return;
+    }
+
+    try {
+      await service.deleteProject(this.data.projectId);
+
+      wx.showToast({
+        title: '项目已删除',
+        icon: 'success',
+      });
+
+      setTimeout(() => {
+        const pages = getCurrentPages();
+        const previousPage = pages[pages.length - 2];
+        const delta = previousPage && previousPage.route === 'pages/project-detail/index' ? 2 : 1;
+
+        if (pages.length > delta) {
+          wx.navigateBack({ delta });
+          return;
+        }
+
+        wx.redirectTo({
+          url: '/pages/projects/index',
+        });
+      }, 320);
+    } catch (error) {
+      wx.showToast({
+        title: error.message || '删除失败',
+        icon: 'none',
+      });
+    }
+  },
+
   async submit() {
     const form = this.data.form;
     if (!form.title.trim()) {
