@@ -19,7 +19,7 @@ page {
 }
 
 .page-scroll {
-  height: 100vh;
+  min-height: 120vh;
   box-sizing: border-box;
 }
 

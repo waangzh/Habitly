@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import type { AuthUser } from '../../common/types/request-context.type';
@@ -44,6 +44,11 @@ export class ProjectsController {
     @Body() payload: UpdateProjectStatusDto,
   ) {
     return this.projectsService.updateStatus(user.userId, projectId, payload.status);
+  }
+
+  @Delete(':projectId')
+  async remove(@CurrentUser() user: AuthUser, @Param('projectId', ParseIntPipe) projectId: number) {
+    return this.projectsService.remove(user.userId, projectId);
   }
 
   @Get(':projectId/detail')

@@ -119,6 +119,17 @@ export class ProjectsService {
     return this.toProjectResponse(userId, project);
   }
 
+  async remove(userId: number, projectId: number) {
+    const project = await this.getEntityOrFail(userId, projectId);
+    project.deletedAt = new Date();
+    await this.projectsRepository.save(project);
+
+    return {
+      projectId: Number(project.id),
+      deleted: true,
+    };
+  }
+
   async getDetail(userId: number, projectId: number) {
     const project = await this.getEntityOrFail(userId, projectId);
     const [stats, records] = await Promise.all([

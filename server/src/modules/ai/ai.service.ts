@@ -29,6 +29,15 @@ import { ReportInsightDto } from './dto/report-insight.dto';
 
 type ClassType<T> = new () => T;
 
+const SCENE_GUIDELINES: Record<string, string> = {
+  'home-nudge': '输出一句短建议和一个短标签，语气轻、稳，不说教，不夸张，不提长期记忆。',
+  'report-insight': '输出固定三段：summary、blockerHypothesis、nextStep。判断要克制，优先给可执行的下一步。',
+  'project-draft':
+    '只返回当前产品已支持的项目字段，不新增产品外字段，不设计复杂规则。title 必须准确保留用户原始目标语义；如果用户描述的是复合习惯（例如早睡早起），不要擅自缩成单一动作；如果原文包含早上、上午、中午、下午、晚上、凌晨等时间限定，reminderTimes 必须转换成正确的 24 小时制时间。',
+  'checkin-coach': '只做单轮追问，问题具体、温和，鼓励用户说出最小行动线索。',
+  'checkin-reflection': '只做单轮回应，先接住用户表达，再给一个轻量下一步。',
+};
+
 @Injectable()
 export class AiService {
   private readonly client: OpenAI;
@@ -87,11 +96,11 @@ export class AiService {
 
   async getProjectDraft(userId: number, payload: ProjectDraftDto, request: RequestWithContext) {
     const fallback = this.createLocalProjectDraft(payload);
-    return this.resolveAiResult({
+    const result = await this.resolveAiResult({
       userId,
       scene: 'project-draft',
       requestId: request.requestId || '',
-      cacheKey: `habit:ai:project-draft:${userId}:${sha256(payload.prompt)}`,
+      cacheKey: `habit:ai:project-draft:v2:${userId}:${sha256(payload.prompt)}`,
       cacheTtl: 86400,
       payload,
       schema: {
@@ -110,6 +119,8 @@ export class AiService {
       outputDto: ProjectDraftOutputDto,
       fallback,
     });
+
+    return this.normalizeProjectDraftOutput(result, payload, fallback);
   }
 
   async getCheckinCoach(userId: number, payload: CheckinCoachDto, request: RequestWithContext) {
@@ -205,7 +216,7 @@ export class AiService {
         messages: [
           {
             role: 'system',
-            content: '请只输出 json，并严格遵守给定字段，不要输出额外说明。',
+            content: this.buildSystemPrompt(scene, schema),
           },
           {
             role: 'user',
@@ -307,6 +318,20 @@ export class AiService {
     );
   }
 
+  private buildSystemPrompt(scene: string, schema: unknown): string {
+    const sceneRule = SCENE_GUIDELINES[scene] || '输出简洁、温和、可执行的内容。';
+    return [
+      '你是 Habitly 小程序的 AI 助手。',
+      '产品类型是习惯养成，不是任务管理工具。',
+      '整体语气要鼓励式、陪伴式、轻提醒，不使用命令口吻，不写鸡汤，不夸张。',
+      '输入只是一份结构化摘要，不要臆测不存在的历史，不要制造长期记忆。',
+      '不要输出用户隐私推断，不要要求额外敏感信息。',
+      sceneRule,
+      `严格按以下 JSON 结构输出：${JSON.stringify(schema)}`,
+      '不要输出 markdown，不要输出解释，不要输出 JSON 之外的任何内容。',
+    ].join('\n');
+  }
+
   private createLocalHomeNudge(payload: HomeNudgeDto): HomeNudgeOutputDto {
     if (payload.projectCount === 0) {
       return {
@@ -355,56 +380,23 @@ export class AiService {
 
   private createLocalProjectDraft(payload: ProjectDraftDto): ProjectDraftOutputDto {
     const prompt = payload.prompt.trim();
-    const text = prompt.toLowerCase();
-    let title = '小坚持';
-    let icon = '🌱';
-    let colorTheme = 'blue';
-    let metricUnit = '';
-    let metricEnabled = false;
-    let moodEnabled = true;
-    let scoreEnabled = false;
-
-    if (text.includes('早睡') || text.includes('sleep')) {
-      title = '早睡';
-      icon = '🌙';
-    } else if (text.includes('阅读') || text.includes('读书') || text.includes('read')) {
-      title = '阅读';
-      icon = '📚';
-      metricEnabled = true;
-      metricUnit = '分钟';
-      moodEnabled = false;
-      scoreEnabled = true;
-      colorTheme = 'green';
-    } else if (text.includes('运动') || text.includes('跑步') || text.includes('健身')) {
-      title = '运动';
-      icon = '🏃';
-      metricEnabled = true;
-      metricUnit = '分钟';
-      colorTheme = 'orange';
-    } else if (text.includes('喝水')) {
-      title = '喝水';
-      icon = '💧';
-      metricEnabled = true;
-      metricUnit = '杯';
-      moodEnabled = false;
-    }
-
+    const profile = this.inferProjectDraftProfile(prompt);
     const scheduleType = /工作日/.test(prompt) ? 'weekly-custom' : 'daily';
     const scheduleDays = scheduleType === 'weekly-custom' ? WORKDAY_DAYS : ALL_SCHEDULE_DAYS;
     const reminderTimes = normalizeReminderTimes(this.extractTimes(prompt));
 
     return {
-      title,
+      title: profile.title,
       slogan: '先把步子放小一点，习惯就更容易长出来。',
       reminderTimes: reminderTimes.length ? reminderTimes : ['21:30'],
-      moodEnabled,
-      scoreEnabled,
-      metricEnabled,
-      metricUnit,
+      moodEnabled: profile.moodEnabled,
+      scoreEnabled: profile.scoreEnabled,
+      metricEnabled: profile.metricEnabled,
+      metricUnit: profile.metricUnit,
       scheduleType,
       scheduleDays,
-      icon,
-      colorTheme,
+      icon: profile.icon,
+      colorTheme: profile.colorTheme,
     };
   }
 
@@ -424,14 +416,182 @@ export class AiService {
     };
   }
 
+  private normalizeProjectDraftOutput(
+    result: ProjectDraftOutputDto,
+    payload: ProjectDraftDto,
+    fallback: ProjectDraftOutputDto,
+  ): ProjectDraftOutputDto {
+    const inferredTitle = this.inferProjectTitle(payload.prompt);
+    const inferredReminderTimes = normalizeReminderTimes(this.extractTimes(payload.prompt));
+
+    return {
+      ...result,
+      title: inferredTitle || result.title || fallback.title,
+      reminderTimes:
+        inferredReminderTimes.length
+          ? inferredReminderTimes
+          : normalizeReminderTimes(result.reminderTimes).length
+            ? normalizeReminderTimes(result.reminderTimes)
+            : fallback.reminderTimes,
+      scheduleType: fallback.scheduleType,
+      scheduleDays: fallback.scheduleDays,
+    };
+  }
+
+  private inferProjectDraftProfile(prompt: string) {
+    const title = this.inferProjectTitle(prompt);
+    const text = prompt.toLowerCase();
+    let icon = '🌱';
+    let colorTheme = 'blue';
+    let metricUnit = '';
+    let metricEnabled = false;
+    let moodEnabled = true;
+    let scoreEnabled = false;
+
+    if (title === '早睡早起' || text.includes('早睡') || text.includes('sleep')) {
+      icon = '🌙';
+    } else if (text.includes('阅读') || text.includes('读书') || text.includes('read')) {
+      icon = '📚';
+      metricEnabled = true;
+      metricUnit = '分钟';
+      moodEnabled = false;
+      scoreEnabled = true;
+      colorTheme = 'green';
+    } else if (text.includes('运动') || text.includes('跑步') || text.includes('健身')) {
+      icon = '🏃';
+      metricEnabled = true;
+      metricUnit = '分钟';
+      colorTheme = 'orange';
+    } else if (text.includes('喝水')) {
+      icon = '💧';
+      metricEnabled = true;
+      metricUnit = '杯';
+      moodEnabled = false;
+    }
+
+    return {
+      title,
+      icon,
+      colorTheme,
+      metricUnit,
+      metricEnabled,
+      moodEnabled,
+      scoreEnabled,
+    };
+  }
+
+  private inferProjectTitle(prompt: string): string {
+    const text = prompt.trim();
+    const lower = text.toLowerCase();
+    const hasSleep = /早睡|sleep|放下手机|早点睡|作息/.test(text) || lower.includes('sleep');
+    const hasWake = /早起|起床|早起床|早点起/.test(text);
+
+    if (/早睡早起|规律作息/.test(text) || (hasSleep && hasWake)) {
+      return '早睡早起';
+    }
+
+    if (hasSleep) {
+      return '早睡';
+    }
+
+    if (text.includes('阅读') || text.includes('读书') || lower.includes('read')) {
+      return '阅读';
+    }
+
+    if (text.includes('运动') || text.includes('跑步') || text.includes('健身')) {
+      return '运动';
+    }
+
+    if (text.includes('喝水')) {
+      return '喝水';
+    }
+
+    return '小坚持';
+  }
+
   private extractTimes(prompt: string): string[] {
-    const matches = prompt.match(/(\d{1,2})[:：点](\d{1,2})?/g) || [];
-    return matches.map((item) => {
-      const match = item.match(/(\d{1,2})[:：点](\d{1,2})?/);
-      const hour = `${match?.[1] || 21}`.padStart(2, '0');
-      const minute = `${match?.[2] || 0}`.padStart(2, '0');
-      return `${hour}:${minute}`;
-    });
+    const matches = prompt.matchAll(
+      /(?:(凌晨|清晨|早上|上午|中午|下午|傍晚|晚上|夜里|夜间|半夜)\s*)?([0-9零〇一二两三四五六七八九十]{1,3})(?:\s*(?:点|时|:|：)\s*([0-9零〇一二两三四五六七八九十]{1,2})?)?\s*(半)?/g,
+    );
+
+    return Array.from(matches)
+      .filter((match) => Boolean(match[1] || match[3] || match[4] || /[:：点时]/.test(match[0])))
+      .map((match) => {
+        const qualifier = match[1] || '';
+        const rawHour = this.parseTimeNumber(match[2]);
+        const rawMinute = match[4] ? 30 : this.parseTimeNumber(match[3] || '0');
+        const hour = this.normalizeHourWithQualifier(rawHour, qualifier);
+        const minute = Math.min(rawMinute, 59);
+        return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+      });
+  }
+
+  private parseTimeNumber(raw: string): number {
+    if (!raw) {
+      return 0;
+    }
+
+    if (/^\d+$/.test(raw)) {
+      return Number(raw);
+    }
+
+    const normalized = raw.replace(/两/g, '二').replace(/〇/g, '零');
+    const digitMap: Record<string, number> = {
+      零: 0,
+      一: 1,
+      二: 2,
+      三: 3,
+      四: 4,
+      五: 5,
+      六: 6,
+      七: 7,
+      八: 8,
+      九: 9,
+    };
+
+    if (normalized === '十') {
+      return 10;
+    }
+
+    if (normalized.includes('十')) {
+      const [tens, units] = normalized.split('十');
+      const tensValue = tens ? digitMap[tens] || 0 : 1;
+      const unitsValue = units ? digitMap[units] || 0 : 0;
+      return tensValue * 10 + unitsValue;
+    }
+
+    return digitMap[normalized] ?? 0;
+  }
+
+  private normalizeHourWithQualifier(hour: number, qualifier: string): number {
+    let normalized = hour % 24;
+
+    if (!qualifier) {
+      return normalized;
+    }
+
+    if (['凌晨', '清晨', '半夜'].includes(qualifier)) {
+      return normalized === 12 ? 0 : normalized;
+    }
+
+    if (['早上', '上午'].includes(qualifier)) {
+      return normalized === 12 ? 0 : normalized;
+    }
+
+    if (qualifier === '中午') {
+      if (normalized === 0) {
+        return 12;
+      }
+      return normalized < 11 ? normalized + 12 : normalized;
+    }
+
+    if (['下午', '傍晚', '晚上', '夜里', '夜间'].includes(qualifier)) {
+      if (normalized < 12) {
+        return normalized + 12;
+      }
+    }
+
+    return normalized;
   }
 
 }

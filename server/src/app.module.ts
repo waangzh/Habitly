@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { InfrastructureModule } from './common/services/infrastructure.module';
 import { RequestIdMiddleware } from './common/middleware/request-id.middleware';
+import { RequestLoggingMiddleware } from './common/middleware/request-logging.middleware';
 import configuration from './config/configuration';
 import { validateEnv } from './config/validation';
 import { createTypeOrmOptions } from './database/typeorm.config';
@@ -45,7 +46,13 @@ import { UsersModule } from './modules/users/users.module';
   ],
 })
 export class AppModule implements NestModule {
+  constructor(private readonly configService: ConfigService) {}
+
   configure(consumer: MiddlewareConsumer): void {
     consumer.apply(RequestIdMiddleware).forRoutes('*');
+
+    if (this.configService.get<string>('app.nodeEnv') === 'development') {
+      consumer.apply(RequestLoggingMiddleware).forRoutes('*');
+    }
   }
 }
