@@ -2,10 +2,11 @@ import { Injectable, Logger, NestMiddleware } from '@nestjs/common';
 import type { NextFunction, Response } from 'express';
 import type { RequestWithContext } from '../types/request-context.type';
 
+const SENSITIVE_KEYS = ['authorization', 'accesstoken', 'refreshtoken', 'password', 'secret'];
+
 @Injectable()
 export class RequestLoggingMiddleware implements NestMiddleware {
   private readonly logger = new Logger('HttpRequest');
-  private readonly sensitiveKeys = ['authorization', 'accessToken', 'refreshToken', 'password', 'secret'];
 
   use(request: RequestWithContext, response: Response, next: NextFunction): void {
     const startedAt = Date.now();
@@ -41,7 +42,7 @@ export class RequestLoggingMiddleware implements NestMiddleware {
 
   private isSensitiveKey(key: string): boolean {
     const lowerKey = key.toLowerCase();
-    return this.sensitiveKeys.some((item) => lowerKey.includes(item.toLowerCase()));
+    return SENSITIVE_KEYS.some((item) => lowerKey.includes(item));
   }
 
   private summarizeValue(value: unknown, depth = 0): unknown {

@@ -3,7 +3,7 @@ import { IsNull } from 'typeorm';
 import { ProjectsService } from './projects.service';
 
 describe('ProjectsService remove', () => {
-  function createService(project?: Record<string, unknown> | null) {
+  function createService(project: Record<string, unknown> | null = null) {
     const projectsRepository = {
       findOne: jest.fn().mockResolvedValue(project),
       save: jest.fn().mockImplementation(async (payload) => payload),

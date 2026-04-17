@@ -379,24 +379,20 @@ export class AiService {
   }
 
   private createLocalProjectDraft(payload: ProjectDraftDto): ProjectDraftOutputDto {
-    const prompt = payload.prompt.trim();
-    const profile = this.inferProjectDraftProfile(prompt);
-    const scheduleType = /工作日/.test(prompt) ? 'weekly-custom' : 'daily';
-    const scheduleDays = scheduleType === 'weekly-custom' ? WORKDAY_DAYS : ALL_SCHEDULE_DAYS;
-    const reminderTimes = normalizeReminderTimes(this.extractTimes(prompt));
+    const inferred = this.inferProjectDraftDefaults(payload.prompt);
 
     return {
-      title: profile.title,
+      title: inferred.title,
       slogan: '先把步子放小一点，习惯就更容易长出来。',
-      reminderTimes: reminderTimes.length ? reminderTimes : ['21:30'],
-      moodEnabled: profile.moodEnabled,
-      scoreEnabled: profile.scoreEnabled,
-      metricEnabled: profile.metricEnabled,
-      metricUnit: profile.metricUnit,
-      scheduleType,
-      scheduleDays,
-      icon: profile.icon,
-      colorTheme: profile.colorTheme,
+      reminderTimes: inferred.reminderTimes.length ? inferred.reminderTimes : ['21:30'],
+      moodEnabled: inferred.moodEnabled,
+      scoreEnabled: inferred.scoreEnabled,
+      metricEnabled: inferred.metricEnabled,
+      metricUnit: inferred.metricUnit,
+      scheduleType: inferred.scheduleType,
+      scheduleDays: inferred.scheduleDays,
+      icon: inferred.icon,
+      colorTheme: inferred.colorTheme,
     };
   }
 
@@ -421,26 +417,31 @@ export class AiService {
     payload: ProjectDraftDto,
     fallback: ProjectDraftOutputDto,
   ): ProjectDraftOutputDto {
-    const inferredTitle = this.inferProjectTitle(payload.prompt);
-    const inferredReminderTimes = normalizeReminderTimes(this.extractTimes(payload.prompt));
+    const inferred = this.inferProjectDraftDefaults(payload.prompt);
+    const normalizedReminderTimes = normalizeReminderTimes(result.reminderTimes);
 
     return {
       ...result,
-      title: inferredTitle || result.title || fallback.title,
-      reminderTimes:
-        inferredReminderTimes.length
-          ? inferredReminderTimes
-          : normalizeReminderTimes(result.reminderTimes).length
-            ? normalizeReminderTimes(result.reminderTimes)
-            : fallback.reminderTimes,
-      scheduleType: fallback.scheduleType,
-      scheduleDays: fallback.scheduleDays,
+      title: inferred.title || result.title || fallback.title,
+      reminderTimes: inferred.reminderTimes.length
+        ? inferred.reminderTimes
+        : normalizedReminderTimes.length
+          ? normalizedReminderTimes
+          : fallback.reminderTimes,
+      scheduleType: inferred.scheduleType,
+      scheduleDays: inferred.scheduleDays,
     };
   }
 
-  private inferProjectDraftProfile(prompt: string) {
-    const title = this.inferProjectTitle(prompt);
-    const text = prompt.toLowerCase();
+  private inferProjectDraftDefaults(prompt: string) {
+    const normalizedPrompt = prompt.trim();
+    const title = this.inferProjectTitle(normalizedPrompt);
+    const text = normalizedPrompt.toLowerCase();
+    const scheduleType: ProjectDraftOutputDto['scheduleType'] = /工作日/.test(normalizedPrompt)
+      ? 'weekly-custom'
+      : 'daily';
+    const scheduleDays = scheduleType === 'weekly-custom' ? WORKDAY_DAYS : ALL_SCHEDULE_DAYS;
+    const reminderTimes = normalizeReminderTimes(this.extractTimes(normalizedPrompt));
     let icon = '🌱';
     let colorTheme = 'blue';
     let metricUnit = '';
@@ -471,6 +472,9 @@ export class AiService {
 
     return {
       title,
+      scheduleType,
+      scheduleDays,
+      reminderTimes,
       icon,
       colorTheme,
       metricUnit,
