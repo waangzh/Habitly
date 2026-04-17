@@ -1,6 +1,8 @@
 project.private.config.json
 AGENTS.md
 开发文档/
+MEMORY.md
+memory/
 
 # local secrets / environment
 .env
